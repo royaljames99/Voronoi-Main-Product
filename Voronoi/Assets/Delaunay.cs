@@ -19,7 +19,7 @@ public class DelaunayEdge
 {
     public DelaunayPoint a;
     public DelaunayPoint b;
-    public DelaunayEdge dualLine;
+    public DelaunayVoronoiLine dualLine;
 
     public DelaunayEdge(DelaunayPoint a, DelaunayPoint b)
     {
@@ -104,7 +104,7 @@ public class DelaunayTriangle
 
         DelaunayPoint centre = new DelaunayPoint(x, y);
         float radius = (float) Math.Sqrt((Math.Pow((x - b.x), 2)) + (Math.Pow((y - b.y), 2)));
-        DelaunayCircle circle = new DelaunayCircle(centre, 0);
+        DelaunayCircle circle = new DelaunayCircle(centre, radius);
         return circle;
     }
 }
@@ -117,8 +117,37 @@ public class Delaunay : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        VoronoiMaster VM = GameObject.FindGameObjectWithTag("GameController").GetComponent <VoronoiMaster>();
+        VoronoiMaster VM = GameObject.FindGameObjectWithTag("GameController").GetComponent<VoronoiMaster>();
         Debug.Log(VM.interesting);
+
+        Debug.Log("Adding Points");
+        List<DelaunayPoint> points = new List<DelaunayPoint>();
+        points.Add(new DelaunayPoint(0, 0));
+        points.Add(new DelaunayPoint(4, 2));
+        points.Add(new DelaunayPoint(4, -2));
+        points.Add(new DelaunayPoint(8, 0));
+
+        Debug.Log("Making triangulation");
+        List<DelaunayPoint> supertrianglePoints = new List<DelaunayPoint>();
+        supertrianglePoints.Add(new DelaunayPoint(-100, -100));
+        supertrianglePoints.Add(new DelaunayPoint(0, 100));
+        supertrianglePoints.Add(new DelaunayPoint(100, -100));
+        DelaunayTriangle supertriangle = new DelaunayTriangle(supertrianglePoints[0], supertrianglePoints[1], supertrianglePoints[2]);
+        List<DelaunayTriangle> triangulation = getWholeTriangulation(points, supertriangle);
+        Debug.Log("OUTPUTTING TRIANGULATION");
+        for (int i = 0; i < triangulation.Count; i++)
+        {
+            Debug.Log(Convert.ToString(triangulation[i].a.x) + "," + Convert.ToString(triangulation[i].a.y) + "    " + Convert.ToString(triangulation[i].b.x) + "," + Convert.ToString(triangulation[i].b.y) + "    " + Convert.ToString(triangulation[i].c.x) + "," + Convert.ToString(triangulation[i].c.y));
+        }
+        Debug.Log("Converting");
+        convertWholeToVoronoi(triangulation);
+        Debug.Log(delVLines.Count);
+
+        foreach (DelaunayVoronoiLine l in delVLines)
+        {
+            Debug.Log("Segment((" + Convert.ToString(l.a.x) + "," + Convert.ToString(l.a.y) + "),(" + Convert.ToString(l.b.x) + "," + Convert.ToString(l.b.y) + "))"); 
+        }
+        Debug.Log("Done");
     }
 
     // Update is called once per frame
@@ -158,7 +187,7 @@ public class Delaunay : MonoBehaviour
     {
         List<DelaunayTriangle> btriangles = new List<DelaunayTriangle>();
         //find no longer valid triangles
-        foreach(DelaunayTriangle tri in triangulation)
+        foreach (DelaunayTriangle tri in triangulation)
         {
             float distToCircumcentre = (float)Math.Sqrt((Math.Pow((tri.circumcircle.centre.x - point.x), 2) + (Math.Pow((tri.circumcircle.centre.y - point.y), 2))));
             if (tri.circumcircle.radius > distToCircumcentre)
@@ -168,27 +197,28 @@ public class Delaunay : MonoBehaviour
         }
         //find boundary of polygonal hole
         List<DelaunayEdge> polygon = new List<DelaunayEdge>();
-        foreach(DelaunayTriangle tri in btriangles)
+        foreach (DelaunayTriangle tri in btriangles)
         {
-            foreach(DelaunayEdge edge in tri.edges)
+            foreach (DelaunayEdge edge in tri.edges)
             {
-                if(!checkIfSharesEdges(edge, tri, btriangles))
+                if (!checkIfSharesEdges(edge, tri, btriangles))
                 {
                     polygon.Add(edge);
                 }
             }
         }
         //remove bad triangles from triangulation
-        foreach(DelaunayTriangle tri in btriangles)
+        foreach (DelaunayTriangle tri in btriangles)
         {
             triangulation.Remove(tri);
         }
         //create new triangles
-        foreach(DelaunayEdge edge in polygon)
+        foreach (DelaunayEdge edge in polygon)
         {
             triangulation.Add(new DelaunayTriangle(edge.a, edge.b, point));
         }
         return triangulation;
+
     }
 
     private void addToVoronoi(DelaunayTriangle triangle, List<DelaunayTriangle> triangles)
@@ -213,12 +243,51 @@ public class Delaunay : MonoBehaviour
         }
     }
 
+    private void removeDuplicateLines()
+    {
+        List<DelaunayVoronoiLine> newVLines = new List<DelaunayVoronoiLine>(delVLines); //make copy of the original
+        /*
+        foreach (DelaunayVoronoiLine line in delVLines)
+        {
+            foreach (DelaunayVoronoiLine l in delVLines)
+            {
+                if (line != l)
+                {
+                    if (checkEdgeEquality(l, line))
+                    {
+                        newVLines.Remove(line); //remove those that occur twice
+                    }
+                }
+            }
+        }
+        */
+        for(int i = 0; i < newVLines.Count; i++)
+        {
+            for (int j = i; j < newVLines.Count; j++)
+            {
+                if (newVLines[i] != newVLines[j])
+                {
+                    if (checkEdgeEquality(newVLines[i], newVLines[j]))
+                    {
+                        newVLines.Remove(newVLines[i]);
+                    }
+                }
+            }
+        }
+        delVLines = new List<DelaunayVoronoiLine>(newVLines); //replace with new list
+    }
+
 
     //functions for generation of entire diagram at once
 
-    public List<DelaunayTriangle> getWholeTriangulation(List<DelaunayPoint> points) //NEEDS WRITING
+    public List<DelaunayTriangle> getWholeTriangulation(List<DelaunayPoint> points, DelaunayTriangle supertriangle) //NEEDS WRITING
     {
         List<DelaunayTriangle> triangulation = new List<DelaunayTriangle>();
+        triangulation.Add(supertriangle);
+        foreach (DelaunayPoint point in points)
+        {
+            triangulation = addPoint(point, triangulation);
+        }
         return triangulation;
     }
 
@@ -229,23 +298,11 @@ public class Delaunay : MonoBehaviour
         {
             addToVoronoi(triangle, delaunay);
         }
+        Debug.Log(delVLines.Count);
 
         // remove duplicates
-        List<DelaunayVoronoiLine> newVLines = new List<DelaunayVoronoiLine>(delVLines); //make copy of the original
-        foreach(DelaunayVoronoiLine line in delVLines)
-        {
-            foreach(DelaunayVoronoiLine l in delVLines)
-            {
-                if(line != l)
-                {
-                    if(checkEdgeEquality(l, line))
-                    {
-                        newVLines.Remove(line); //remove those that occur twice
-                    }
-                }
-            }
-        }
-        delVLines = new List<DelaunayVoronoiLine>(newVLines); //replace with new list
+        removeDuplicateLines();
+        Debug.Log(delVLines.Count);
     }
 
 
@@ -272,6 +329,27 @@ public class Delaunay : MonoBehaviour
 
     private void updateVoronoi(List<DelaunayTriangle> triangulation, List<DelaunayTriangle> newTriangles, List<DelaunayTriangle> deletedTriangles)
     {
-        
+        //add the new stuff
+        foreach(DelaunayTriangle tri in newTriangles)
+        {
+            addToVoronoi(tri, triangulation);
+        }
+        //remove the old stuff
+        foreach(DelaunayTriangle tri in deletedTriangles)
+        {
+            if (delVLines.Contains(tri.edges[0].dualLine)){
+                delVLines.Remove(tri.edges[0].dualLine);
+            }
+            else if (delVLines.Contains(tri.edges[1].dualLine))
+            {
+                delVLines.Remove(tri.edges[1].dualLine);
+            }
+            else if (delVLines.Contains(tri.edges[2].dualLine))
+            {
+                delVLines.Remove(tri.edges[2].dualLine);
+            }
+        }
+        //remove duplicate lines
+        removeDuplicateLines();
     }
 }
