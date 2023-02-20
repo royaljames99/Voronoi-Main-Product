@@ -33,11 +33,6 @@ public class CameraScript : MonoBehaviour
         }
 
         //Zoom
-        if (Input.GetAxis("Mouse ScrollWheel") != 0){
-
-
-            Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
-        }
         cam.orthographicSize = Mathf.Clamp(cam.orthographicSize - (Input.GetAxis("Mouse ScrollWheel") * (float)(zoomRatio * cam.orthographicSize)), minZoom, maxZoom);
     }
 }
