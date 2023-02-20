@@ -112,7 +112,7 @@ public class DelaunayTriangle
 public class Delaunay : MonoBehaviour
 {
     //internal variables
-    List<DelaunayVoronoiLine> delVLines = new List<DelaunayVoronoiLine>();
+    List<DelaunayVoronoiLine> delVLines = new List<DelaunayVoronoiLine>(); //finished Voronoi Lines
 
     // Start is called before the first frame update
     void Start()
