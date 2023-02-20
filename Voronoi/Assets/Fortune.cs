@@ -1,7 +1,41 @@
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+struct QueueItem{
+    public dynamic item;
+    public float weighting;
+    public int nextIndex;
+
+    public QueueItem(dynamic item, float weighting)
+    {
+
+    }
+}
+
+class PriorityQueue
+{
+    int front = 0;
+    List<QueueItem> queue = new List<QueueItem>();
+    public PriorityQueue()
+    {
+
+    }
+
+    public void enqueue(dynamic item, float weighting) //dynamic so queue is ambiguously typed until use
+    {
+
+    }
+
+    public dynamic dequeue() //dynamic value means I can use this queue for anything
+    {
+
+    }
+}
+
 
 class FortunePoint
 {
@@ -23,8 +57,8 @@ class FortuneArc
     public float a;
     public float b;
     public float c;
-    public FortuneLine leftEdge;
-    public FortuneLine rightEdge;
+    public FortuneEdge? leftEdge;
+    public FortuneEdge? rightEdge;
 
     public FortuneArc(FortunePoint point, float minX, float minY)
     {
@@ -35,17 +69,17 @@ class FortuneArc
 
     public void calcVals(float sweeplineY)
     {
-        float k = (self.point.y + sweeplineY) / 2;
-        float p = (self.point.y - sweeplineY) / 2;
+        float k = (this.point.y + sweeplineY) / 2;
+        float p = (this.point.y - sweeplineY) / 2;
 
         this.a = 1 / (4 * p);
         this.b = (-1 * this.point.x) / (2 * p);
-        this.c = ((Math.Pow(this.point.x, 2)) / (4 * p)) + k;
+        this.c = ((float)(Math.Pow(this.point.x, 2)) / (4 * p)) + k;
     }
 
     public float calcY(float x)
     {
-        float y = ((this.a * (Math.Pow(x, 2))) + (this.b * x) + this.c);
+        float y = ((this.a * ((float)Math.Pow(x, 2))) + (this.b * x) + this.c);
         return y;
     }
 }
@@ -53,15 +87,15 @@ class FortuneArc
 class FortuneEdge
 {
     public FortunePoint start;
-    public FortunePoint end;
+    public FortunePoint? end;
     public (float, float) directionVector;
-    public string propDirection;
-    public float m;
-    public float c;
+    public string? propDirection;
+    public float? m;
+    public float? c;
     public bool vertical;
-    public float xVal;
+    public float? xVal;
 
-    public FortuneEdge(FortunePoint start, (float, float) directionVector, string propDirection = null, float m = null, bool vertical = false)
+    public FortuneEdge(FortunePoint start, (float, float) directionVector, string? propDirection = null, float? m = null, bool vertical = false)
     {
         this.start = start;
         this.directionVector = directionVector;
@@ -69,7 +103,7 @@ class FortuneEdge
 
         if (m == null && !vertical)
         {
-            this.m = (directionVector[1] / directionVector[0]);
+            this.m = (directionVector.Item2 / directionVector.Item1);
         }
         else
         {
@@ -92,19 +126,19 @@ class FortuneEdge
     public float calcX(float y)
     {
         float dy = y - this.start.y;
-        float dx = dy * this.directionVector[0];
+        float dx = dy * this.directionVector.Item1;
         float x = this.start.x + dx;
         return x;
     }
 
-    public float calcY(float x)
+    public float? calcY(float x)
     {
         if (this.vertical)
         {
             return null;
         }
         float dx = x - this.start.x;
-        float dy = dx * this.directionVector[1];
+        float dy = dx * this.directionVector.Item2;
         float y = this.start.y + dy;
         return y;
     }
@@ -153,8 +187,31 @@ class CircleEvent : FortunePoint
         float yac = (y1 + y3) / 2;
 
         //if 2 points have same y then x is directly in centre
-
-
+        float x;
+        float y;
+        if (y1 == y2)
+        {
+            x = (x1 + x2) / 2;
+            y = ((-((x1 - x3) / (y1 - y3))) * (x - xac)) + yac;
+           
+        }
+        else if (y1 == y3)
+        {
+            x = (x1 + x3) / 2;
+            y = ((-((x1 - x2) / (y1 - y2))) * (x - xab)) + yab;
+        }
+        else if (y2 == y3)
+        {
+            x = (x2 + x3) / 2;
+            y = ((-((x1 - x2) / (y1 - y2))) * (x - xab)) + yab;
+        }
+        else
+        {
+            x = ((((-x1 * xab) + (xab * x2)) / (y1 - y2)) + (((x1 * xac) - (xac * x3)) / (y1 - y3)) + yac - yab) / (((-x1 + x2) / (y1 - y2)) + ((x1 - x3) / (y1 - y3)));
+            y = ((-((x1 - x3) / (y1 - y3))) * (x - xac)) + yac;
+        }
+        FortunePoint circumcentre = new FortunePoint(x, y);
+        return circumcentre;
     }
 }
 
