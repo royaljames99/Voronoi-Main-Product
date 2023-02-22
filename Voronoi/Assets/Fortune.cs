@@ -6,13 +6,43 @@ using System.Collections.Generic;
 using UnityEngine;
 
 struct QueueItem{
-    public dynamic item;
-    public float weighting;
-    public int nextIndex;
+    private FortunePoint item;
+    private float weighting;
+    private int nextIndex;
+    private bool alive;
 
-    public QueueItem(dynamic item, float weighting)
+    public int getNextIndex()
     {
+        return nextIndex;
+    }
+    public void setNextIndex(int nextIndex)
+    {
+        this.nextIndex = nextIndex;
+    }
 
+    public float getWeighting()
+    {
+        return weighting;
+    }
+    public dynamic getItem()
+    {
+        return item;
+    }
+    public bool getAlive()
+    {
+        return used;
+    }
+    public void die()
+    {
+        alive = false;
+    }
+
+    public QueueItem(FortunePoint item, float weighting)
+    {
+        this.item = item;
+        this.weighting = weighting;
+        nextIndex = -1;
+        used = false;
     }
 }
 
@@ -22,17 +52,51 @@ class PriorityQueue
     List<QueueItem> queue = new List<QueueItem>();
     public PriorityQueue()
     {
-
+        
     }
 
-    public void enqueue(dynamic item, float weighting) //dynamic so queue is ambiguously typed until use
+    public void enqueue(FortunePoint item, float weighting) //dynamic so queue is ambiguously typed until use
     {
+        QueueItem newItem = new QueueItem(item, weighting);
 
+        if(queue.Count == 0)
+        {
+            queue.Add(newItem);
+        }
+
+        bool found = false;
+        int nextItemIdx = front;
+        int previousItemIdx = -1;
+        while (!found)
+        {
+            if (queue[nextItemIdx].getWeighting() < weighting)
+            {
+                found = true;
+            }
+            else
+            {
+                previousItemIdx = nextItemIdx;
+                nextItemIdx = queue[nextItemIdx].getNextIndex();
+            }
+        }
+        newItem.setNextIndex(queue[previousItemIdx].getNextIndex());
+        for (int i = 0; !found && i < queue.Count; i++)
+        {
+            if (queue[i].getAlive() == false)
+            {
+                queue[i] = newItem;
+                queue[previousItemIdx].setNextIndex(i);
+                found = true;
+            }
+        }
     }
 
-    public dynamic dequeue() //dynamic value means I can use this queue for anything
+    public FortunePoint dequeue()
     {
-
+        FortunePoint item = queue[front];
+        queue[front].die();
+        front = item.getNextIndex();
+        return item.getItem();
     }
 }
 
