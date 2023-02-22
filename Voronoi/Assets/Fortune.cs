@@ -9,7 +9,7 @@ struct QueueItem{
     private FortunePoint item;
     private float weighting;
     private int nextIndex;
-    private bool alive;
+    public bool alive;
 
     public int getNextIndex()
     {
@@ -24,13 +24,13 @@ struct QueueItem{
     {
         return weighting;
     }
-    public dynamic getItem()
+    public FortunePoint getItem()
     {
         return item;
     }
     public bool getAlive()
     {
-        return used;
+        return alive;
     }
     public void die()
     {
@@ -42,14 +42,14 @@ struct QueueItem{
         this.item = item;
         this.weighting = weighting;
         nextIndex = -1;
-        used = false;
+        alive = true;
     }
 }
 
 class PriorityQueue
 {
     int front = 0;
-    List<QueueItem> queue = new List<QueueItem>();
+    public List<QueueItem> queue = new List<QueueItem>();
     public PriorityQueue()
     {
         
@@ -62,12 +62,13 @@ class PriorityQueue
         if(queue.Count == 0)
         {
             queue.Add(newItem);
+            return;
         }
 
         bool found = false;
         int nextItemIdx = front;
         int previousItemIdx = -1;
-        while (!found)
+        while (!found && nextItemIdx != -1)
         {
             if (queue[nextItemIdx].getWeighting() < weighting)
             {
@@ -79,7 +80,10 @@ class PriorityQueue
                 nextItemIdx = queue[nextItemIdx].getNextIndex();
             }
         }
-        newItem.setNextIndex(queue[previousItemIdx].getNextIndex());
+        if (nextItemIdx != -1 && previousItemIdx != -1)
+        {
+            newItem.setNextIndex(queue[previousItemIdx].getNextIndex());
+        }
         for (int i = 0; !found && i < queue.Count; i++)
         {
             if (queue[i].getAlive() == false)
@@ -87,16 +91,39 @@ class PriorityQueue
                 queue[i] = newItem;
                 queue[previousItemIdx].setNextIndex(i);
                 found = true;
+                return;
             }
         }
+        Debug.Log(previousItemIdx);
+        queue[previousItemIdx].setNextIndex(queue.Count);
+        queue.Add(newItem);
     }
 
     public FortunePoint dequeue()
     {
-        FortunePoint item = queue[front];
+        if (isEmpty())
+        {
+            return null;
+        }
+        Debug.Log("REEEEE");
+        QueueItem item = queue[front];
         queue[front].die();
         front = item.getNextIndex();
+        Debug.Log(front);
         return item.getItem();
+    }
+
+    public bool isEmpty()
+    {
+        bool empty = true;
+        foreach(QueueItem item in queue)
+        {
+            if (item.getAlive() == true)
+            {
+                empty = false;
+            }
+        }
+        return empty;
     }
 }
 
@@ -285,7 +312,27 @@ public class Fortune : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        PriorityQueue queue = new PriorityQueue();
+        queue.enqueue(new FortunePoint(1, 2), 9);
+        queue.enqueue(new FortunePoint(2, 2), 5);
+        queue.enqueue(new FortunePoint(3, 2), 22);
+        queue.enqueue(new FortunePoint(4, 2), 164);
+        queue.enqueue(new FortunePoint(5, 2), 2);
+        queue.enqueue(new FortunePoint(6, 2), 3);
+        queue.enqueue(new FortunePoint(7, 2), 19);
+        queue.enqueue(new FortunePoint(8, 2), 1);
+
+        Debug.Log("queue emptying, expect order 8,5,6,2,1,7,3,4");
+        Debug.Log(queue.isEmpty());
+        while (!queue.isEmpty())
+        {
+            Debug.Log(queue.dequeue().x);
+        }
+        Debug.Log("full queue output");
+        foreach(QueueItem item in queue.queue)
+        {
+            Debug.Log(Convert.ToString(item.alive) + " " + Convert.ToString(item.getItem().x) + " " + Convert.ToString(item.getWeighting()));
+        }
     }
 
     // Update is called once per frame
