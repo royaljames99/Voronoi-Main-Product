@@ -5,19 +5,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-struct QueueItem{
+class QueueItem{
     private FortunePoint item;
     private float weighting;
-    private int nextIndex;
+    public int nextIndex;
     public bool alive;
 
     public int getNextIndex()
     {
         return nextIndex;
     }
-    public void setNextIndex(int nextIndex)
+    public void setNextIndex(int newNextIndex)
     {
-        this.nextIndex = nextIndex;
+        nextIndex = newNextIndex;
+        Debug.Log("woo " + Convert.ToString(nextIndex) + " " + Convert.ToString(newNextIndex));
     }
 
     public float getWeighting()
@@ -68,6 +69,7 @@ class PriorityQueue
         bool found = false;
         int nextItemIdx = front;
         int previousItemIdx = -1;
+
         while (!found && nextItemIdx != -1)
         {
             if (queue[nextItemIdx].getWeighting() < weighting)
@@ -80,22 +82,31 @@ class PriorityQueue
                 nextItemIdx = queue[nextItemIdx].getNextIndex();
             }
         }
+
+        bool addingToFront = false;
         if (nextItemIdx != -1 && previousItemIdx != -1)
         {
             newItem.setNextIndex(queue[previousItemIdx].getNextIndex());
         }
+        else if (previousItemIdx == -1)
+        {
+            newItem.setNextIndex(front);
+            previousItemIdx = front;
+            addingToFront = true;
+        }
+
         for (int i = 0; !found && i < queue.Count; i++)
         {
             if (queue[i].getAlive() == false)
             {
                 queue[i] = newItem;
                 queue[previousItemIdx].setNextIndex(i);
-                found = true;
                 return;
             }
         }
         Debug.Log(previousItemIdx);
         queue[previousItemIdx].setNextIndex(queue.Count);
+        Debug.Log(queue[previousItemIdx].nextIndex);
         queue.Add(newItem);
     }
 
