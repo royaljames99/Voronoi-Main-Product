@@ -5,138 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-class QueueItem{
-    private FortunePoint item;
-    private float weighting;
-    public int nextIndex;
-    public bool alive;
 
-    public int getNextIndex()
-    {
-        return nextIndex;
-    }
-    public void setNextIndex(int newNextIndex)
-    {
-        nextIndex = newNextIndex;
-        Debug.Log("woo " + Convert.ToString(nextIndex) + " " + Convert.ToString(newNextIndex));
-    }
-
-    public float getWeighting()
-    {
-        return weighting;
-    }
-    public FortunePoint getItem()
-    {
-        return item;
-    }
-    public bool getAlive()
-    {
-        return alive;
-    }
-    public void die()
-    {
-        alive = false;
-    }
-
-    public QueueItem(FortunePoint item, float weighting)
-    {
-        this.item = item;
-        this.weighting = weighting;
-        nextIndex = -1;
-        alive = true;
-    }
-}
-
-class PriorityQueue
-{
-    int front = 0;
-    public List<QueueItem> queue = new List<QueueItem>();
-    public PriorityQueue()
-    {
-        
-    }
-
-    public void enqueue(FortunePoint item, float weighting) //dynamic so queue is ambiguously typed until use
-    {
-        QueueItem newItem = new QueueItem(item, weighting);
-
-        if(queue.Count == 0)
-        {
-            queue.Add(newItem);
-            return;
-        }
-
-        bool found = false;
-        int nextItemIdx = front;
-        int previousItemIdx = -1;
-
-        while (!found && nextItemIdx != -1)
-        {
-            if (queue[nextItemIdx].getWeighting() < weighting)
-            {
-                found = true;
-            }
-            else
-            {
-                previousItemIdx = nextItemIdx;
-                nextItemIdx = queue[nextItemIdx].getNextIndex();
-            }
-        }
-
-        bool addingToFront = false;
-        if (nextItemIdx != -1 && previousItemIdx != -1)
-        {
-            newItem.setNextIndex(queue[previousItemIdx].getNextIndex());
-        }
-        else if (previousItemIdx == -1)
-        {
-            newItem.setNextIndex(front);
-            previousItemIdx = front;
-            addingToFront = true;
-        }
-
-        for (int i = 0; !found && i < queue.Count; i++)
-        {
-            if (queue[i].getAlive() == false)
-            {
-                queue[i] = newItem;
-                queue[previousItemIdx].setNextIndex(i);
-                return;
-            }
-        }
-        Debug.Log(previousItemIdx);
-        queue[previousItemIdx].setNextIndex(queue.Count);
-        Debug.Log(queue[previousItemIdx].nextIndex);
-        queue.Add(newItem);
-    }
-
-    public FortunePoint dequeue()
-    {
-        if (isEmpty())
-        {
-            return null;
-        }
-        Debug.Log("REEEEE");
-        QueueItem item = queue[front];
-        queue[front].die();
-        front = item.getNextIndex();
-        Debug.Log(front);
-        return item.getItem();
-    }
-
-    public bool isEmpty()
-    {
-        bool empty = true;
-        foreach(QueueItem item in queue)
-        {
-            if (item.getAlive() == true)
-            {
-                empty = false;
-            }
-        }
-        return empty;
-    }
-}
 
 
 class FortunePoint
@@ -322,7 +191,9 @@ public class Fortune : MonoBehaviour
 {
     // Start is called before the first frame update
     void Start()
-    {
+    
+    {   
+        /*
         PriorityQueue queue = new PriorityQueue();
         queue.enqueue(new FortunePoint(1, 2), 9);
         queue.enqueue(new FortunePoint(2, 2), 5);
@@ -344,6 +215,7 @@ public class Fortune : MonoBehaviour
         {
             Debug.Log(Convert.ToString(item.alive) + " " + Convert.ToString(item.getItem().x) + " " + Convert.ToString(item.getWeighting()));
         }
+        */
     }
 
     // Update is called once per frame

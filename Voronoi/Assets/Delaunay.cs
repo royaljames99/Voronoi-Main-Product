@@ -117,8 +117,6 @@ public class Delaunay : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        VoronoiMaster VM = GameObject.FindGameObjectWithTag("GameController").GetComponent<VoronoiMaster>();
-        Debug.Log(VM.interesting);
 
         Debug.Log("Adding Points");
         List<DelaunayPoint> points = new List<DelaunayPoint>();

@@ -353,9 +353,9 @@
     <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Drawing\Controls\IControlAttribute.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Data\Nodes\Utility\SplitTextureTransformNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Generation\Processors\ShaderGeneratorNames.cs" />
-    <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Data\Attributes\ContextFilterableAttribute.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Util\AssertHelpers.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Data\Util\StackPool.cs" />
+    <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Data\Attributes\ContextFilterableAttribute.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Drawing\MaterialGraphPreviewGenerator.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Data\Nodes\Math\Trigonometry\HyperbolicTangentNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@12.1.10\Editor\Data\Util\KeywordDependentCollection.cs" />

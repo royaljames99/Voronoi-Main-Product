@@ -63,8 +63,8 @@
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\Common\CoreProfileId.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\Debugging\DebugUI.Panel.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\Common\CoreAttributes.cs" />
-    <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\RenderGraph\RenderGraphResourceTexture.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\Common\ObservableList.cs" />
+    <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\RenderGraph\RenderGraphResourceTexture.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\Textures\Texture2DAtlasDynamic.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\Lighting\ProbeVolume\ProbeVolumeBakingProcessSettings.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@12.1.10\Runtime\LookDev\IDataProvider.cs" />

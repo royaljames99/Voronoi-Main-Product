@@ -1,19 +1,125 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class VoronoiMaster : MonoBehaviour
 {
-    public int interesting = 7;
+    public int algorithm = 0; //0:delaunay, 1:GS, 2:fortune
+    public int cursorType = 0; //0:pointer, 1:seed, 2:pan
+    public int genType = 0; //0:speedy, 1:animation, 2:live updates
+
+    //algorithm buttons
+    public GameObject DelaunayButton;
+    public GameObject GSButton;
+    public GameObject FortuneButton;
+    //cursor tool buttons
+    public GameObject PointerCursorButton;
+    public GameObject SeedCursorButton;
+    public GameObject PanCursorButton;
+    //generation type buttons
+    public GameObject SpeedyButton;
+    public GameObject AnimationButton;
+    public GameObject LiveUpdatesButton;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+
+    //group and handle button inputs
+    public void ButtonInputs(int buttonID)
+    {
+        if (buttonID < 3) //the algorithm buttons
+        {
+            algorithm = buttonID;
+            if (buttonID != 0 && DelaunayButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                DelaunayButton.GetComponent<ToggleableButton>().toggle();
+            }
+            if (buttonID != 1 && GSButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                GSButton.GetComponent<ToggleableButton>().toggle();
+            }
+            if (buttonID != 2 && FortuneButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                FortuneButton.GetComponent<ToggleableButton>().toggle();
+            }
+        }
+        else if (buttonID < 6) //cursor tool buttons
+        {
+            cursorType = buttonID - 3;
+            if(buttonID != 3 && PointerCursorButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                PointerCursorButton.GetComponent<ToggleableButton>().toggle();
+            }
+            if(buttonID != 4 && SeedCursorButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                SeedCursorButton.GetComponent<ToggleableButton>().toggle();
+            }
+            if(buttonID != 5 && PanCursorButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                PanCursorButton.GetComponent<ToggleableButton>().toggle();
+            }
+        }
+        else if (buttonID < 9) //Generation setting buttons
+        {
+            genType = buttonID - 6;
+            if (buttonID != 6 && SpeedyButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                SpeedyButton.GetComponent<ToggleableButton>().toggle();
+            }
+            if (buttonID != 7 && AnimationButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                AnimationButton.GetComponent<ToggleableButton>().toggle();
+            }
+            if (buttonID != 8 && LiveUpdatesButton.GetComponent<ToggleableButton>().isPressed)
+            {
+                LiveUpdatesButton.GetComponent<ToggleableButton>().toggle();
+            }
+        }
+        else if (buttonID == 9) //load background image button
+        {
+            selectBackgroundImage();
+        }
+        else if (buttonID == 10)
+        {
+            save();
+        }
+        else if (buttonID == 11)
+        {
+            template();
+        }
+        else if (buttonID == 12)
+        {
+            load();
+        }
+    }
+
+    private void selectBackgroundImage()
+    {
+        string imagePath = EditorUtility.OpenFilePanel("Select background image", "", "png");
+        Debug.Log(imagePath);
+    }
+
+    private void save()
+    {
+
+    }
+
+    private void template()
+    {
+
+    }
+    private void load()
+    {
+
     }
 }
