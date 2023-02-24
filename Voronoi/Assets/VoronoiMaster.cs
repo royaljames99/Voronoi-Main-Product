@@ -1,7 +1,20 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.EventSystems;
+
+class Seed
+{
+    public int x;
+    public int y;
+    public Seed(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+}
 
 public class VoronoiMaster : MonoBehaviour
 {
@@ -22,6 +35,8 @@ public class VoronoiMaster : MonoBehaviour
     public GameObject AnimationButton;
     public GameObject LiveUpdatesButton;
 
+    private List<Seed> seeds = new List<Seed>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -31,7 +46,23 @@ public class VoronoiMaster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                Debug.Log("asdf");
+                if (cursorType == 1)
+                {
+                    addSeed();
+                }
+            }
+        }
+    }
+
+    // Add new seed
+    private void addSeed()
+    {
+
     }
 
     //group and handle button inputs
@@ -101,6 +132,14 @@ public class VoronoiMaster : MonoBehaviour
         {
             load();
         }
+        else if (buttonID == 13)
+        {
+            generate();
+        }
+        else if (buttonID == 14)
+        {
+            edBalls();
+        }
     }
 
     private void selectBackgroundImage()
@@ -118,8 +157,20 @@ public class VoronoiMaster : MonoBehaviour
     {
 
     }
+
     private void load()
     {
 
     }
+
+    private void generate()
+    {
+
+    }
+
+    private void edBalls()
+    {
+
+    }
+
 }
