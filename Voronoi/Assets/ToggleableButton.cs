@@ -12,6 +12,7 @@ public class ToggleableButton : MonoBehaviour, IPointerClickHandler
     Image image;
     public Color originalColor;
     public Color checkedColor;
+    public Color disabledColor;
     public bool isPressed;
     public int buttonID;
     public GameObject VoronoiMaster;
@@ -23,6 +24,14 @@ public class ToggleableButton : MonoBehaviour, IPointerClickHandler
     {
         image = GetComponent<Image>();
         updateColour();
+    }
+    public void disableButton()
+    {
+        disabled = true;
+    }
+    public void enableButton()
+    {
+        disabled = false;
     }
 
     public void toggle()
