@@ -121,6 +121,25 @@ public class VoronoiMaster : MonoBehaviour
         return;
     }
 
+
+    //boundary changes
+    public void minXChanged()
+    {
+
+    }
+    public void maxXChanged()
+    {
+
+    }
+    public void minYChanged()
+    {
+
+    }
+    public void maxYChanged()
+    {
+
+    }
+
     
     //group and handle button inputs
     public void ButtonInputs(int buttonID)
@@ -148,15 +167,15 @@ public class VoronoiMaster : MonoBehaviour
         else if (buttonID < 7) //cursor tool buttons
         {
             cursorType = buttonID - 4;
-            if(buttonID != 3 && PointerCursorButton.GetComponent<ToggleableButton>().isPressed)
+            if(buttonID != 4 && PointerCursorButton.GetComponent<ToggleableButton>().isPressed)
             {
                 PointerCursorButton.GetComponent<ToggleableButton>().toggle();
             }
-            if(buttonID != 4 && SeedCursorButton.GetComponent<ToggleableButton>().isPressed)
+            if(buttonID != 5 && SeedCursorButton.GetComponent<ToggleableButton>().isPressed)
             {
                 SeedCursorButton.GetComponent<ToggleableButton>().toggle();
             }
-            if(buttonID != 5 && PanCursorButton.GetComponent<ToggleableButton>().isPressed)
+            if(buttonID != 6 && PanCursorButton.GetComponent<ToggleableButton>().isPressed)
             {
                 PanCursorButton.GetComponent<ToggleableButton>().toggle();
             }
@@ -164,20 +183,20 @@ public class VoronoiMaster : MonoBehaviour
         else if (buttonID < 10) //Generation setting buttons
         {
             genType = buttonID - 7;
-            if (buttonID != 6 && SpeedyButton.GetComponent<ToggleableButton>().isPressed)
+            if (buttonID != 7 && SpeedyButton.GetComponent<ToggleableButton>().isPressed)
             {
                 SpeedyButton.GetComponent<ToggleableButton>().toggle();
             }
-            if (buttonID != 7 && AnimationButton.GetComponent<ToggleableButton>().isPressed)
+            if (buttonID != 8 && AnimationButton.GetComponent<ToggleableButton>().isPressed)
             {
                 AnimationButton.GetComponent<ToggleableButton>().toggle();
             }
-            if (buttonID != 8 && LiveUpdatesButton.GetComponent<ToggleableButton>().isPressed)
+            if (buttonID != 9 && LiveUpdatesButton.GetComponent<ToggleableButton>().isPressed)
             {
                 LiveUpdatesButton.GetComponent<ToggleableButton>().toggle();
                 GenerateButton.GetComponent<NonToggleableButton>().enableButton();
             }
-            else if (buttonID == 8)
+            else if (buttonID == 9)
             {
                 GenerateButton.GetComponent<NonToggleableButton>().disableButton(); //can't hit generate when doing live updates
             }
