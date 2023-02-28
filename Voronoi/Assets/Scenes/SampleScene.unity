@@ -1141,6 +1141,7 @@ GameObject:
   - component: {fileID: 207121808}
   - component: {fileID: 207121807}
   - component: {fileID: 207121806}
+  - component: {fileID: 207121809}
   m_Layer: 5
   m_Name: XValField
   m_TagString: Untagged
@@ -1317,6 +1318,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 207121804}
   m_CullTransparentMesh: 1
+--- !u!114 &207121809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 207121804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 541ec0b2b369dbc498f93e81f22e3920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  output: 
 --- !u!1 &270891604
 GameObject:
   m_ObjectHideFlags: 0
@@ -2277,7 +2291,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Enter text...
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3261,6 +3275,7 @@ GameObject:
   - component: {fileID: 641799937}
   - component: {fileID: 641799936}
   - component: {fileID: 641799935}
+  - component: {fileID: 641799938}
   m_Layer: 5
   m_Name: minYField
   m_TagString: Untagged
@@ -3437,6 +3452,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 641799933}
   m_CullTransparentMesh: 1
+--- !u!114 &641799938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641799933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 541ec0b2b369dbc498f93e81f22e3920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  output: 
 --- !u!1 &647412138
 GameObject:
   m_ObjectHideFlags: 0
@@ -3781,6 +3809,7 @@ GameObject:
   - component: {fileID: 750357955}
   - component: {fileID: 750357954}
   - component: {fileID: 750357953}
+  - component: {fileID: 750357956}
   m_Layer: 5
   m_Name: maxYField
   m_TagString: Untagged
@@ -3957,6 +3986,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 750357951}
   m_CullTransparentMesh: 1
+--- !u!114 &750357956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750357951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 541ec0b2b369dbc498f93e81f22e3920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  output: 
 --- !u!1 &763602701
 GameObject:
   m_ObjectHideFlags: 0
@@ -5766,7 +5808,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Enter text...
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7161,6 +7203,7 @@ GameObject:
   - component: {fileID: 1509035049}
   - component: {fileID: 1509035048}
   - component: {fileID: 1509035047}
+  - component: {fileID: 1509035050}
   m_Layer: 5
   m_Name: maxXField
   m_TagString: Untagged
@@ -7337,6 +7380,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1509035045}
   m_CullTransparentMesh: 1
+--- !u!114 &1509035050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1509035045}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 541ec0b2b369dbc498f93e81f22e3920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  output: 
 --- !u!1 &1510178110
 GameObject:
   m_ObjectHideFlags: 0
@@ -7699,7 +7755,15 @@ MonoBehaviour:
   DelaunayButton: {fileID: 2090438277}
   GSButton: {fileID: 1069104576}
   FortuneButton: {fileID: 2091546958}
-  txtBox: {fileID: 0}
+  xInputBox: {fileID: 207121804}
+  yInputBox: {fileID: 1599804336}
+  hexInputBox: {fileID: 401229808}
+  transparencySlider: {fileID: 1739567793}
+  deleteButton: {fileID: 427930972}
+  minXInputBox: {fileID: 1680859975}
+  maxXInputBox: {fileID: 1509035045}
+  minYInputBox: {fileID: 641799933}
+  maxYInputBox: {fileID: 750357951}
   PointerCursorButton: {fileID: 1667273668}
   SeedCursorButton: {fileID: 1780253837}
   PanCursorButton: {fileID: 47590438}
@@ -7713,6 +7777,7 @@ MonoBehaviour:
   GenerateButton: {fileID: 1872326710}
   EdBallsButton: {fileID: 1874952760}
   seedObject: {fileID: 1702696686}
+  pointerDistanceThreashold: 50
 --- !u!4 &1575612728
 Transform:
   m_ObjectHideFlags: 0
@@ -7743,6 +7808,7 @@ GameObject:
   - component: {fileID: 1599804340}
   - component: {fileID: 1599804339}
   - component: {fileID: 1599804338}
+  - component: {fileID: 1599804341}
   m_Layer: 5
   m_Name: YValField
   m_TagString: Untagged
@@ -7919,6 +7985,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1599804336}
   m_CullTransparentMesh: 1
+--- !u!114 &1599804341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1599804336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 541ec0b2b369dbc498f93e81f22e3920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  output: 
 --- !u!1 &1600988007
 GameObject:
   m_ObjectHideFlags: 0
@@ -8262,6 +8341,7 @@ GameObject:
   - component: {fileID: 1680859979}
   - component: {fileID: 1680859978}
   - component: {fileID: 1680859977}
+  - component: {fileID: 1680859980}
   m_Layer: 5
   m_Name: minXField
   m_TagString: Untagged
@@ -8438,6 +8518,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1680859975}
   m_CullTransparentMesh: 1
+--- !u!114 &1680859980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1680859975}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 541ec0b2b369dbc498f93e81f22e3920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  output: 
 --- !u!1 &1687776982
 GameObject:
   m_ObjectHideFlags: 0
@@ -10378,7 +10471,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Enter text...
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

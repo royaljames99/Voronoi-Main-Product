@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,7 +12,6 @@ public class txtBox : MonoBehaviour
     void Start()
     {
         GetComponent<TMP_InputField>().contentType = TMP_InputField.ContentType.IntegerNumber;
-        GetComponent<TMP_InputField>().text = "12";
     }
 
     // Update is called once per frame
@@ -20,9 +20,8 @@ public class txtBox : MonoBehaviour
         
     }
 
-    public void valueChanged()
+    public void setValue(int s)
     {
-        string v = GetComponent<TMP_InputField>().text;
-        Debug.Log(v);
+        GetComponent<TMP_InputField>().text = Convert.ToString(s);
     }
 }
