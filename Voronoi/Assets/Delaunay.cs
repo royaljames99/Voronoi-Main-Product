@@ -112,12 +112,12 @@ public class DelaunayTriangle
 public class Delaunay : MonoBehaviour
 {
     //internal variables
-    List<DelaunayVoronoiLine> delVLines = new List<DelaunayVoronoiLine>(); //finished Voronoi Lines
+    public List<DelaunayVoronoiLine> delVLines = new List<DelaunayVoronoiLine>(); //finished Voronoi Lines
 
     // Start is called before the first frame update
     void Start()
     {
-
+        /*
         Debug.Log("Adding Points");
         List<DelaunayPoint> points = new List<DelaunayPoint>();
         points.Add(new DelaunayPoint(0, 0));
@@ -146,6 +146,7 @@ public class Delaunay : MonoBehaviour
             Debug.Log("Segment((" + Convert.ToString(l.a.x) + "," + Convert.ToString(l.a.y) + "),(" + Convert.ToString(l.b.x) + "," + Convert.ToString(l.b.y) + "))"); 
         }
         Debug.Log("Done");
+        */
     }
 
     // Update is called once per frame
@@ -244,21 +245,6 @@ public class Delaunay : MonoBehaviour
     private void removeDuplicateLines()
     {
         List<DelaunayVoronoiLine> newVLines = new List<DelaunayVoronoiLine>(delVLines); //make copy of the original
-        /*
-        foreach (DelaunayVoronoiLine line in delVLines)
-        {
-            foreach (DelaunayVoronoiLine l in delVLines)
-            {
-                if (line != l)
-                {
-                    if (checkEdgeEquality(l, line))
-                    {
-                        newVLines.Remove(line); //remove those that occur twice
-                    }
-                }
-            }
-        }
-        */
         for(int i = 0; i < newVLines.Count; i++)
         {
             for (int j = i; j < newVLines.Count; j++)
@@ -289,18 +275,16 @@ public class Delaunay : MonoBehaviour
         return triangulation;
     }
 
-    private void convertWholeToVoronoi(List<DelaunayTriangle> delaunay)
+    public void convertWholeToVoronoi(List<DelaunayTriangle> delaunay)
     {
         delVLines.Clear();
         foreach (DelaunayTriangle triangle in delaunay)
         {
             addToVoronoi(triangle, delaunay);
         }
-        Debug.Log(delVLines.Count);
 
         // remove duplicates
         removeDuplicateLines();
-        Debug.Log(delVLines.Count);
     }
 
 

@@ -7752,6 +7752,9 @@ MonoBehaviour:
   cursorType: 0
   genType: 0
   cam: {fileID: 1644412652}
+  Delaunay: {fileID: 2146929035}
+  Fortune: {fileID: 88218549}
+  GreenSibson: {fileID: 10142067}
   DelaunayButton: {fileID: 2090438277}
   GSButton: {fileID: 1069104576}
   FortuneButton: {fileID: 2091546958}

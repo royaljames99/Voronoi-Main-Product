@@ -33,6 +33,11 @@ public class VoronoiMaster : MonoBehaviour
     //the camera
     public Camera cam;
 
+    //algorithms
+    public GameObject Delaunay;
+    public GameObject Fortune;
+    public GameObject GreenSibson;
+
     //algorithm buttons
     public GameObject DelaunayButton;
     public GameObject GSButton;
@@ -135,6 +140,11 @@ public class VoronoiMaster : MonoBehaviour
 
     private void selectedSeedChanged()
     {
+        xInputBox.GetComponent<TMP_InputField>().interactable = true;
+        yInputBox.GetComponent<TMP_InputField>().interactable = true;
+        hexInputBox.GetComponent<TMP_InputField>().interactable = true;
+        transparencySlider.GetComponent<Slider>().interactable = true;
+        deleteButton.GetComponent<NonToggleableButton>().enableButton();
         xInputBox.GetComponent<txtBox>().setValue(selectedSeed.x);
         yInputBox.GetComponent<txtBox>().setValue(selectedSeed.y);
     }
@@ -188,11 +198,23 @@ public class VoronoiMaster : MonoBehaviour
     //input box changes
     public void xValChanged()
     {
-        return;
+        if (!xInputBox.GetComponent<TMP_InputField>().interactable)
+        {
+            return;
+        }
+        int newX = Convert.ToInt16(xInputBox.GetComponent<TMP_InputField>().text);
+        selectedSeed.x = newX;
+        selectedSeed.unityObject.transform.position = new Vector3(newX, selectedSeed.y);
     }
     public void yValChanged()
     {
-        return;
+        if (!yInputBox.GetComponent<TMP_InputField>().interactable)
+        {
+            return;
+        }
+        int newY = Convert.ToInt16(yInputBox.GetComponent<TMP_InputField>().text);
+        selectedSeed.y = newY;
+        selectedSeed.unityObject.transform.position = new Vector3(selectedSeed.x, newY);
     }
     public void hexValChanged()
     {
@@ -328,7 +350,13 @@ public class VoronoiMaster : MonoBehaviour
 
     private void generate()
     {
-
+        if(seeds.Count > 1)
+        {
+            if(algorithm == 0)
+            {
+                genWholeDelaunay();
+            }
+        }
     }
 
     private void edBalls()
@@ -336,4 +364,23 @@ public class VoronoiMaster : MonoBehaviour
 
     }
 
+
+
+    //algorithm interfacing subroutines
+    private void genWholeDelaunay()
+    {
+        //convert seeds to Delaunay format
+        List<DelaunayPoint> delaunaySeeds = new List<DelaunayPoint>();
+        foreach(Seed seed in seeds)
+        {
+            delaunaySeeds.Add(new DelaunayPoint(seed.x, seed.y));
+        }
+        DelaunayTriangle supertriangle = new DelaunayTriangle(new DelaunayPoint(-10000000, -10000000), new DelaunayPoint(0, 10000000), new DelaunayPoint(10000000, -10000000));
+        List<DelaunayTriangle> triangulation = Delaunay.GetComponent<Delaunay>().getWholeTriangulation(delaunaySeeds, supertriangle);
+        Delaunay.GetComponent<Delaunay>().convertWholeToVoronoi(triangulation);
+        foreach (DelaunayVoronoiLine l in Delaunay.GetComponent<Delaunay>().delVLines)
+        {
+            Debug.Log("Segment((" + Convert.ToString(l.a.x) + "," + Convert.ToString(l.a.y) + "),(" + Convert.ToString(l.b.x) + "," + Convert.ToString(l.b.y) + "))");
+        }
+    }
 }
