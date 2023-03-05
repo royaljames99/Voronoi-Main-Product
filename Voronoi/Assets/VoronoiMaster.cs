@@ -356,6 +356,14 @@ public class VoronoiMaster : MonoBehaviour
             {
                 genWholeDelaunay();
             }
+            else if(algorithm == 1)
+            {
+
+            }
+            else //fortune
+            {
+                genWholeFortune();
+            }
         }
     }
 
@@ -382,5 +390,20 @@ public class VoronoiMaster : MonoBehaviour
         {
             Debug.Log("Segment((" + Convert.ToString(l.a.x) + "," + Convert.ToString(l.a.y) + "),(" + Convert.ToString(l.b.x) + "," + Convert.ToString(l.b.y) + "))");
         }
+    }
+
+    private void genWholeGS()
+    {
+
+    }
+
+    private void genWholeFortune()
+    {
+        List<FortunePoint> fortuneSeeds = new List<FortunePoint>();
+        foreach(Seed seed in seeds)
+        {
+            fortuneSeeds.Add(new FortunePoint(seed.x, seed.y));
+        }
+        Fortune.GetComponent<Fortune>().generateWholeFortune(fortuneSeeds, -50, -50, 2000);
     }
 }
