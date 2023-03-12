@@ -29,15 +29,18 @@ public class CameraScript : MonoBehaviour
         //Panning
         if (cursorType == 2)
         {
+            //mouse clicked down and not over the side panel
             if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
             {
                 panning = true;
                 startPos = cam.ScreenToWorldPoint(Input.mousePosition);
             }
+            //stop panning
             if (panning && Input.GetMouseButtonUp(0))
             {
                 panning = false;
             }
+            //adjust camera position
             if (panning)
             {
                 if (Input.GetMouseButton(0))

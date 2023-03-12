@@ -605,7 +605,7 @@ public class Fortune : MonoBehaviour
         {
             FortuneArc[] arcs = sweep.arcs.GetRange(index - 2, 3).ToArray();
             //doesn't share 2 points
-            if ((arcs[0].point.x != arcs[1].point.x | arcs[0].point.y != arcs[1].point.y) && (arcs[0].point.x != arcs[2].point.x | arcs[0].point.y != arcs[2].point.y) && (arcs[1].point.x != arcs[2].point.x | arcs[1].point.y != arcs[2].point.y))
+            if ((arcs[0].point.x != arcs[1].point.x || arcs[0].point.y != arcs[1].point.y) && (arcs[0].point.x != arcs[2].point.x || arcs[0].point.y != arcs[2].point.y) && (arcs[1].point.x != arcs[2].point.x || arcs[1].point.y != arcs[2].point.y))
             {
                 FortunePoint circumcentre = CircleEvent.calcCircumcentre(arcs[0], arcs[1], arcs[2]);
                 if(!(circumcentre.x > arcs[2].point.x))
@@ -623,7 +623,7 @@ public class Fortune : MonoBehaviour
         if (index <= sweep.arcs.Count - 3)
         {
             FortuneArc[] arcs = sweep.arcs.GetRange(index, 3).ToArray();
-            if ((arcs[0].point.x != arcs[1].point.x | arcs[0].point.y != arcs[1].point.y) && (arcs[0].point.x != arcs[2].point.x | arcs[0].point.y != arcs[2].point.y) && (arcs[1].point.x != arcs[2].point.x | arcs[1].point.y != arcs[2].point.y))//doesn't share 2 points
+            if ((arcs[0].point.x != arcs[1].point.x || arcs[0].point.y != arcs[1].point.y) && (arcs[0].point.x != arcs[2].point.x || arcs[0].point.y != arcs[2].point.y) && (arcs[1].point.x != arcs[2].point.x || arcs[1].point.y != arcs[2].point.y))//doesn't share 2 points
             {
                 FortunePoint circumcentre = CircleEvent.calcCircumcentre(arcs[0], arcs[1], arcs[2]);
                 if(!(circumcentre.x < arcs[0].point.x))
@@ -728,6 +728,10 @@ public class Fortune : MonoBehaviour
             }
             else
             {
+                if (idx - 2 >= 0) //this if is new so if something weird happens look here
+                {
+                    //checkNewCircleEvents(sweep, idx - 2, queue, true);
+                }
                 checkNewCircleEvents(sweep, idx - 2, queue, true);
             }
         }

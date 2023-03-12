@@ -71,6 +71,8 @@ public class VoronoiMaster : MonoBehaviour
 
     //seed object used as model
     public GameObject seedObject;
+    //voronoi region object template (mesh renderer)
+    public GameObject voroRegion;
 
     //selectedSeed
     private Seed selectedSeed;
@@ -390,6 +392,8 @@ public class VoronoiMaster : MonoBehaviour
         {
             Debug.Log("Segment((" + Convert.ToString(l.a.x) + "," + Convert.ToString(l.a.y) + "),(" + Convert.ToString(l.b.x) + "," + Convert.ToString(l.b.y) + "))");
         }
+
+        renderDelaunay();
     }
 
     private void genWholeGS()
@@ -405,5 +409,119 @@ public class VoronoiMaster : MonoBehaviour
             fortuneSeeds.Add(new FortunePoint(seed.x, seed.y));
         }
         Fortune.GetComponent<Fortune>().generateWholeFortune(fortuneSeeds, -50, -50, 2000);
+    }
+
+    //renderers
+    private void renderDelaunay()
+    {
+        List<DelaunayVoronoiLine> delVLines = Delaunay.GetComponent<Delaunay>().delVLines;
+
+        //each seed has an accompanying list of lines for drawing triangles
+        List<List<DelaunayVoronoiLine>> lines = new List<List<DelaunayVoronoiLine>>();
+        List<DelaunayPoint> seeds = new List<DelaunayPoint>();
+
+
+        foreach(DelaunayVoronoiLine line in delVLines)
+        {
+            foreach (DelaunayPoint seed in line.seeds)
+            {
+                if (seeds.Contains(seed))
+                {
+                    lines[seeds.IndexOf(seed)].Add(line);
+                }
+                else
+                {
+                    seeds.Add(seed);
+                    lines.Add(new List<DelaunayVoronoiLine> { line });
+                }
+            }
+        }
+
+        //make mesh for each voronoi region
+        Debug.Log(lines.Count);
+        for(int i = 0; i < lines.Count; i++)
+        {
+            //collate list of points and reference triangles
+            List<DelaunayPoint> points = new List<DelaunayPoint>(); //list of vertices
+            points.Add(seeds[i]);
+            int[] triangles = new int[(lines[i].Count * 3)];
+            int arrayIndex = 0;
+            foreach (DelaunayVoronoiLine line in lines[i])
+            {
+                //extract points
+                bool aFound = false;
+                int aIndex = -1;
+                bool bFound = false;
+                int bIndex = -1;
+                for (int j = 0; j < points.Count; j++)
+                {
+                    DelaunayPoint point = points[j];
+                    if (point.x == line.a.x && point.y == line.a.y)
+                    {
+                        aFound = true;
+                        aIndex = j;
+                    }
+                    if (point.x == line.b.x && point.y == line.b.y)
+                    {
+                        bFound = true;
+                        bIndex = j;
+                    }
+                }
+                if (!aFound)
+                {
+                    aIndex = points.Count;
+                    points.Add(line.a);
+                }
+                if (!bFound)
+                {
+                    bIndex = points.Count;
+                    points.Add(line.b);
+                }
+                //add triangle
+                triangles[arrayIndex] = 0;
+                triangles[arrayIndex + 1] = aIndex;
+                triangles[arrayIndex + 2] = bIndex;
+                arrayIndex += 3;
+            }
+            /*
+            foreach(int integer in triangles)
+            {
+                Debug.Log(integer);
+            }*/
+
+
+            //convert point list into vectors
+            Vector3[] vectors = new Vector3[points.Count];
+            arrayIndex = 0;
+            foreach(DelaunayPoint point in points)
+            {
+                vectors[arrayIndex] = new Vector3(point.x, point.y, 0);
+                arrayIndex++;
+            }
+
+
+            //whack the coloUrs on there
+            Color[] colors = new Color[vectors.Length];
+            for (int a = 0; a < vectors.Length; a++)
+            {
+                colors[a] = new Color(255, 255, 255);
+            }
+
+            Mesh mesh = new Mesh();
+            mesh.Clear();
+            GameObject meshObject = Instantiate(voroRegion);
+            meshObject.active = true;
+            System.Random random = new System.Random();
+            meshObject.GetComponent<MeshRenderer>().material.color = new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255), 1);
+            Debug.Log(meshObject.GetComponent<MeshRenderer>().material.color.r);
+            //meshObject.GetComponent<MeshRenderer>().material.color = Color.red;
+            //GameObject meshObject = new GameObject("VoroRegion", typeof(MeshFilter), typeof(MeshRenderer));
+            meshObject.GetComponent<MeshFilter>().mesh = mesh;
+            mesh.vertices = vectors;
+            mesh.triangles = triangles;
+            //mesh.colors = colors;
+        }
+
+        
     }
 }

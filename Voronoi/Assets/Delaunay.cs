@@ -30,7 +30,7 @@ public class DelaunayEdge
 
 public class DelaunayVoronoiLine : DelaunayEdge //inherit delaunay edge to act as an edge while keeping track of seeds
 {
-    DelaunayPoint[] seeds = new DelaunayPoint[2];
+    public DelaunayPoint[] seeds = new DelaunayPoint[2];
     
     public DelaunayVoronoiLine(DelaunayPoint a, DelaunayPoint b, DelaunayPoint seed1, DelaunayPoint seed2) : base(a, b)
     {
