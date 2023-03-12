@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.EventSystems;
@@ -279,12 +280,30 @@ public class VoronoiMaster : MonoBehaviour
             return;
         }
 
+        (int, int, int) rgb = hexValsFromCode(newInput);
+        selectedSeed.hexCode = newInput;
+        selectedSeed.r = rgb.Item1;
+        selectedSeed.g = rgb.Item2;
+        selectedSeed.b = rgb.Item3;
+        
+        if(genType == 2)
+        {
+            if(algorithm == 0)
+            {
+                renderDelaunay();
+            }
+        }
+    }
+
+    private (int, int, int) hexValsFromCode(string hexCode)
+    {
+        char[] validHexChars = new char[16] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
         string red = "";
         string green = "";
         string blue = "";
-        for(int i = 0; i < newInput.Length; i++)
+        for (int i = 0; i < hexCode.Length; i++)
         {
-            char c = newInput[i];
+            char c = hexCode[i];
             if (Array.Exists(validHexChars, element => element == c))
             {
                 if (i < 2)
@@ -312,22 +331,11 @@ public class VoronoiMaster : MonoBehaviour
         {
             intGreen = Convert.ToInt32(green, 16);
         }
-        if(blue != "")
+        if (blue != "")
         {
             intBlue = Convert.ToInt32(blue, 16);
         }
-        selectedSeed.hexCode = newInput;
-        selectedSeed.r = intRed;
-        selectedSeed.g = intGreen;
-        selectedSeed.b = intBlue;
-        
-        if(genType == 2)
-        {
-            if(algorithm == 0)
-            {
-                renderDelaunay();
-            }
-        }
+        return (intRed, intGreen, intBlue);
     }
 
 
@@ -502,7 +510,26 @@ public class VoronoiMaster : MonoBehaviour
 
     private void save()
     {
-
+        int choice = EditorUtility.DisplayDialogComplex("Save", "Do you want to save a screenshot or the points", "Cancel", "Image", "Points");
+        if(choice == 0)
+        {
+            return;
+        }
+        else if(choice == 1)
+        {
+            string saveLocation = EditorUtility.SaveFilePanel("Save", "", "screenshot", "png");
+            ScreenCapture.CaptureScreenshot(saveLocation, 1);
+        }
+        else
+        {
+            string saveText = "x,y,hex,transparency";
+            foreach(Seed seed in seeds)
+            {
+                saveText += "\n" + Convert.ToString(seed.x) + "," + Convert.ToString(seed.y) + "," + seed.hexCode;
+            }
+            string saveLocation = EditorUtility.SaveFilePanel("Save", "", "points", "csv");
+            File.WriteAllText(saveLocation, saveText);
+        }
     }
 
     private void template()
@@ -512,7 +539,17 @@ public class VoronoiMaster : MonoBehaviour
 
     private void load()
     {
-
+        string saveLocation = EditorUtility.OpenFilePanel("Select file with points data", "", "csv");
+        StreamReader reader = new(saveLocation);
+        string full = reader.ReadToEnd();
+        string[] lines = full.Split("\n");
+        lines = lines.Skip(1).ToArray();
+        foreach(string line in lines)
+        {
+            string[] vals = line.Split(",");
+            (int, int, int) rgb = hexValsFromCode(vals[2]);
+            seeds.Add(new Seed(Convert.ToInt16(vals[0]), Convert.ToInt16(vals[1]), vals[2], rgb.Item1, rgb.Item2, rgb.Item3, seedObject));
+        }
     }
 
     private void generate()
