@@ -28,10 +28,12 @@ public class ToggleableButton : MonoBehaviour, IPointerClickHandler
     public void disableButton()
     {
         disabled = true;
+        GetComponent<Button>().interactable = false;
     }
     public void enableButton()
     {
         disabled = false;
+        GetComponent<Button>().interactable = true;
     }
 
     public void toggle()

@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine.EventSystems;
 using TMPro;
 using UnityEngine.UI;
+using System.IO;
 
 public class Seed
 {
@@ -85,12 +86,17 @@ public class VoronoiMaster : MonoBehaviour
     public GameObject seedObject;
     //voronoi region object template (mesh renderer)
     public GameObject voroRegion;
+    //background image object
+    public GameObject backgroundImage;
 
     //selectedSeed
     private Seed selectedSeed;
     public float pointerDistanceThreashold;
 
     public List<Seed> seeds = new List<Seed>();
+
+    //misc
+    List<DelaunayTriangle> triangulation;
 
     // Start is called before the first frame update
     void Start()
@@ -386,13 +392,31 @@ public class VoronoiMaster : MonoBehaviour
             {
                 DelaunayButton.GetComponent<ToggleableButton>().toggle();
             }
+            else
+            {
+                LiveUpdatesButton.GetComponent<ToggleableButton>().enableButton();
+            }
             if (buttonID != 1 && GSButton.GetComponent<ToggleableButton>().isPressed)
             {
                 GSButton.GetComponent<ToggleableButton>().toggle();
             }
+            else
+            {
+                LiveUpdatesButton.GetComponent<ToggleableButton>().enableButton();
+            }
             if (buttonID != 2 && FortuneButton.GetComponent<ToggleableButton>().isPressed)
             {
                 FortuneButton.GetComponent<ToggleableButton>().toggle();
+            }
+            else
+            {
+                LiveUpdatesButton.GetComponent<ToggleableButton>().disableButton();
+                if(genType == 2)
+                {
+                    genType = 0;
+                    LiveUpdatesButton.GetComponent<ToggleableButton>().toggle();
+                    SpeedyButton.GetComponent<ToggleableButton>().toggle();
+                }
             }
         }
         else if (buttonID == 3) //delete seed
@@ -466,6 +490,14 @@ public class VoronoiMaster : MonoBehaviour
     {
         string imagePath = EditorUtility.OpenFilePanel("Select background image", "", "png");
         Debug.Log(imagePath);
+        StreamReader reader = new StreamReader(imagePath);
+        Texture2D tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(imagePath));
+        Debug.Log(tex.height);
+        Debug.Log(tex.width);
+        backgroundImage.transform.localScale = new Vector3(tex.width, tex.height, 0);
+        backgroundImage.GetComponent<RawImage>().texture = tex;
+        backgroundImage.GetComponent<RawImage>().color = new Color(255, 255, 255, 1);
     }
 
     private void save()
@@ -519,14 +551,30 @@ public class VoronoiMaster : MonoBehaviour
             delaunaySeeds.Add(new DelaunayPoint(seed.x, seed.y));
         }
         DelaunayTriangle supertriangle = new DelaunayTriangle(new DelaunayPoint(-10000000, -10000000), new DelaunayPoint(0, 10000000), new DelaunayPoint(10000000, -10000000));
-        List<DelaunayTriangle> triangulation = Delaunay.GetComponent<Delaunay>().getWholeTriangulation(delaunaySeeds, supertriangle);
+        triangulation = Delaunay.GetComponent<Delaunay>().getWholeTriangulation(delaunaySeeds, supertriangle);
         Delaunay.GetComponent<Delaunay>().convertWholeToVoronoi(triangulation);
         renderDelaunay();
     }
 
     private void liveUpdateDelaunay(Seed newSeed)
     {
-
+        DelaunayPoint delSeed = new(newSeed.x, newSeed.y);
+        List<DelaunayPoint> delaunaySeeds = new List<DelaunayPoint> { delSeed };
+        if (seeds.Count > 1)
+        {
+            List<DelaunayTriangle> origTriangulation = new List<DelaunayTriangle>(triangulation);
+            List<DelaunayTriangle> newTriangulation = Delaunay.GetComponent<Delaunay>().addPoint(delSeed, triangulation);
+            (List<DelaunayTriangle> newTriangles, List<DelaunayTriangle> deletedTriangles) = Delaunay.GetComponent<Delaunay>().findChangedTriangles(origTriangulation, newTriangulation);
+            Delaunay.GetComponent<Delaunay>().updateVoronoi(newTriangulation, newTriangles, deletedTriangles);
+            triangulation = newTriangulation;
+        }
+        else
+        {
+            DelaunayTriangle supertriangle = new DelaunayTriangle(new DelaunayPoint(-10000000, -10000000), new DelaunayPoint(0, 10000000), new DelaunayPoint(10000000, -10000000));
+            triangulation = Delaunay.GetComponent<Delaunay>().getWholeTriangulation(delaunaySeeds, supertriangle);
+            Delaunay.GetComponent<Delaunay>().convertWholeToVoronoi(triangulation);
+        }
+        renderDelaunay();
     }
 
     private void genWholeGS()
@@ -547,12 +595,11 @@ public class VoronoiMaster : MonoBehaviour
     //renderers
     private void clearScreen()
     {
-        GameObject output;
-        do
+        GameObject[] allObjects = GameObject.FindGameObjectsWithTag("Voro");
+        foreach(GameObject obj in allObjects)
         {
-            output = GameObject.FindWithTag("Voro");
-            Destroy(output);
-        } while (output != null);
+            Destroy(obj);
+        }
     }
 
     private void renderDelaunay()

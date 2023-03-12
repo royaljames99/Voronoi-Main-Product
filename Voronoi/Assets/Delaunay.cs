@@ -290,7 +290,7 @@ public class Delaunay : MonoBehaviour
 
     //functions for procedural generation
 
-    private (List<DelaunayTriangle>, List<DelaunayTriangle>) findChangedTriangles(List<DelaunayTriangle> delaunay1, List<DelaunayTriangle> delaunay2)
+    public (List<DelaunayTriangle>, List<DelaunayTriangle>) findChangedTriangles(List<DelaunayTriangle> delaunay1, List<DelaunayTriangle> delaunay2)
     {
         //Add deleted ones to the deleted list
         //remove existing ones from the newtriangles list (leaving behind only new ones)
@@ -309,7 +309,7 @@ public class Delaunay : MonoBehaviour
         return (newTriangles, deletedTriangles);
     }
 
-    private void updateVoronoi(List<DelaunayTriangle> triangulation, List<DelaunayTriangle> newTriangles, List<DelaunayTriangle> deletedTriangles)
+    public void updateVoronoi(List<DelaunayTriangle> triangulation, List<DelaunayTriangle> newTriangles, List<DelaunayTriangle> deletedTriangles)
     {
         //add the new stuff
         foreach(DelaunayTriangle tri in newTriangles)
