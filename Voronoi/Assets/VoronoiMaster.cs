@@ -11,13 +11,19 @@ public class Seed
 {
     public int x;
     public int y;
-    public Color colour;
+    public string hexCode;
+    public int r;
+    public int g;
+    public int b;
     public GameObject unityObject;
-    public Seed(int x, int y, Color colour, GameObject seedObject)
+    public Seed(int x, int y, string hexCode, int r, int g, int b, GameObject seedObject)
     {
         this.x = x;
         this.y = y;
-        this.colour = colour;
+        this.hexCode = hexCode;
+        this.r = r;
+        this.g = g;
+        this.b = b;
         unityObject = UnityEngine.Object.Instantiate(seedObject);
         unityObject.transform.position = new Vector3(x, y, 0);
         unityObject.SetActive(true);
@@ -29,6 +35,12 @@ public class VoronoiMaster : MonoBehaviour
     public int algorithm = 0; //0:delaunay, 1:GS, 2:fortune
     public int cursorType = 0; //0:pointer, 1:seed, 2:pan
     public int genType = 0; //0:speedy, 1:animation, 2:live updates
+
+    //boundary values
+    public int minX = 0;
+    public int maxX = 1000;
+    public int minY = 500;
+    public int maxY = 2000;
 
     //the camera
     public Camera cam;
@@ -83,7 +95,10 @@ public class VoronoiMaster : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        minXInputBox.GetComponent<txtBox>().setValue(minX);
+        maxXInputBox.GetComponent<txtBox>().setValue(maxX);
+        minYInputBox.GetComponent<txtBox>().setValue(minY);
+        maxYInputBox.GetComponent<txtBox>().setValue(maxY);
     }
 
     // Update is called once per frame
@@ -149,6 +164,7 @@ public class VoronoiMaster : MonoBehaviour
         deleteButton.GetComponent<NonToggleableButton>().enableButton();
         xInputBox.GetComponent<txtBox>().setValue(selectedSeed.x);
         yInputBox.GetComponent<txtBox>().setValue(selectedSeed.y);
+        hexInputBox.GetComponent<colorInputBox>().setValue(selectedSeed.hexCode);
     }
 
     // Add new seed
@@ -163,9 +179,20 @@ public class VoronoiMaster : MonoBehaviour
             return;
         }
         System.Random rand = new System.Random();
-        Color colour = new Color(rand.Next(255), rand.Next(255), rand.Next(255), 1);
-        Seed newSeed = new Seed(x, y, colour, seedObject);
+        int randRed = rand.Next(256);
+        int randGreen = rand.Next(256);
+        int randBlue = rand.Next(256);
+        string randHex = Convert.ToString(randRed, 16).PadLeft(2, '0') + Convert.ToString(randGreen, 16).PadLeft(2, '0') + Convert.ToString(randBlue, 16).PadLeft(2, '0');
+        Seed newSeed = new Seed(x, y, randHex, randRed, randBlue, randGreen, seedObject);
         seeds.Add(newSeed);
+
+        if(genType == 2)
+        {
+            if(algorithm == 0)
+            {
+                liveUpdateDelaunay(newSeed);
+            }
+        }
     }
 
     private bool checkForDuplicateSeeds(int x, int y)
@@ -205,8 +232,15 @@ public class VoronoiMaster : MonoBehaviour
             return;
         }
         int newX = Convert.ToInt16(xInputBox.GetComponent<TMP_InputField>().text);
-        selectedSeed.x = newX;
-        selectedSeed.unityObject.transform.position = new Vector3(newX, selectedSeed.y);
+        if (checkForDuplicateSeeds(newX, selectedSeed.y))
+        {
+            xInputBox.GetComponent<txtBox>().setValue(selectedSeed.x);
+        }
+        else
+        {
+            selectedSeed.x = newX;
+            selectedSeed.unityObject.transform.position = new Vector3(newX, selectedSeed.y);
+        }
     }
     public void yValChanged()
     {
@@ -215,31 +249,130 @@ public class VoronoiMaster : MonoBehaviour
             return;
         }
         int newY = Convert.ToInt16(yInputBox.GetComponent<TMP_InputField>().text);
-        selectedSeed.y = newY;
-        selectedSeed.unityObject.transform.position = new Vector3(selectedSeed.x, newY);
+        if (checkForDuplicateSeeds(selectedSeed.x, newY))
+        {
+            yInputBox.GetComponent<txtBox>().setValue(selectedSeed.y);
+        }
+        else
+        {
+            selectedSeed.y = newY;
+            selectedSeed.unityObject.transform.position = new Vector3(selectedSeed.x, newY);
+        }
     }
     public void hexValChanged()
     {
-        return;
+        char[] validHexChars = new char[16] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+        string newInput = hexInputBox.GetComponent<TMP_InputField>().text.ToUpper();
+        newInput = newInput.Replace(" ", "");
+        Debug.Log(newInput);
+
+        if(newInput.Length > 6)
+        {
+            hexInputBox.GetComponent<TMP_InputField>().text = selectedSeed.hexCode;
+            return;
+        }
+
+        string red = "";
+        string green = "";
+        string blue = "";
+        for(int i = 0; i < newInput.Length; i++)
+        {
+            char c = newInput[i];
+            if (Array.Exists(validHexChars, element => element == c))
+            {
+                if (i < 2)
+                {
+                    red += c;
+                }
+                else if (i < 4)
+                {
+                    green += c;
+                }
+                else
+                {
+                    blue += c;
+                }
+            }
+        }
+        int intRed = 0;
+        int intGreen = 0;
+        int intBlue = 0;
+        if (red != "")
+        {
+            intRed = Convert.ToInt32(red, 16);
+        }
+        if (green != "")
+        {
+            intGreen = Convert.ToInt32(green, 16);
+        }
+        if(blue != "")
+        {
+            intBlue = Convert.ToInt32(blue, 16);
+        }
+        selectedSeed.hexCode = newInput;
+        selectedSeed.r = intRed;
+        selectedSeed.g = intGreen;
+        selectedSeed.b = intBlue;
+        
+        if(genType == 2)
+        {
+            if(algorithm == 0)
+            {
+                renderDelaunay();
+            }
+        }
     }
 
 
     //boundary changes
     public void minXChanged()
     {
-
+        int newMinX = Convert.ToInt16(minXInputBox.GetComponent<TMP_InputField>().text);
+        if(newMinX < maxX)
+        {
+            minX = newMinX;
+        }
+        else
+        {
+            minXInputBox.GetComponent<txtBox>().setValue(minX);
+        }
     }
     public void maxXChanged()
     {
-
+        int newMaxX = Convert.ToInt16(maxXInputBox.GetComponent<TMP_InputField>().text);
+        if (newMaxX > minX)
+        {
+            maxX = newMaxX;
+        }
+        else
+        {
+            maxXInputBox.GetComponent<txtBox>().setValue(maxX);
+        }
     }
     public void minYChanged()
     {
-
+        int newMinY = Convert.ToInt16(minYInputBox.GetComponent<TMP_InputField>().text);
+        if (newMinY < maxY)
+        {
+            minY = newMinY;
+        }
+        else
+        {
+            minYInputBox.GetComponent<txtBox>().setValue(minY);
+        }
     }
     public void maxYChanged()
     {
-
+        int newMaxY = Convert.ToInt16(maxYInputBox.GetComponent<TMP_InputField>().text);
+        if (newMaxY > minY)
+        {
+            maxY = newMaxY;
+        }
+        else
+        {
+            maxYInputBox.GetComponent<txtBox>().setValue(maxY);
+        }
     }
 
     
@@ -388,12 +521,12 @@ public class VoronoiMaster : MonoBehaviour
         DelaunayTriangle supertriangle = new DelaunayTriangle(new DelaunayPoint(-10000000, -10000000), new DelaunayPoint(0, 10000000), new DelaunayPoint(10000000, -10000000));
         List<DelaunayTriangle> triangulation = Delaunay.GetComponent<Delaunay>().getWholeTriangulation(delaunaySeeds, supertriangle);
         Delaunay.GetComponent<Delaunay>().convertWholeToVoronoi(triangulation);
-        foreach (DelaunayVoronoiLine l in Delaunay.GetComponent<Delaunay>().delVLines)
-        {
-            Debug.Log("Segment((" + Convert.ToString(l.a.x) + "," + Convert.ToString(l.a.y) + "),(" + Convert.ToString(l.b.x) + "," + Convert.ToString(l.b.y) + "))");
-        }
-
         renderDelaunay();
+    }
+
+    private void liveUpdateDelaunay(Seed newSeed)
+    {
+
     }
 
     private void genWholeGS()
@@ -412,38 +545,48 @@ public class VoronoiMaster : MonoBehaviour
     }
 
     //renderers
+    private void clearScreen()
+    {
+        GameObject output;
+        do
+        {
+            output = GameObject.FindWithTag("Voro");
+            Destroy(output);
+        } while (output != null);
+    }
+
     private void renderDelaunay()
     {
+        clearScreen();
         List<DelaunayVoronoiLine> delVLines = Delaunay.GetComponent<Delaunay>().delVLines;
 
         //each seed has an accompanying list of lines for drawing triangles
         List<List<DelaunayVoronoiLine>> lines = new List<List<DelaunayVoronoiLine>>();
-        List<DelaunayPoint> seeds = new List<DelaunayPoint>();
+        List<DelaunayPoint> delSeeds = new List<DelaunayPoint>();
 
 
         foreach(DelaunayVoronoiLine line in delVLines)
         {
             foreach (DelaunayPoint seed in line.seeds)
             {
-                if (seeds.Contains(seed))
+                if (delSeeds.Contains(seed))
                 {
-                    lines[seeds.IndexOf(seed)].Add(line);
+                    lines[delSeeds.IndexOf(seed)].Add(line);
                 }
                 else
                 {
-                    seeds.Add(seed);
+                    delSeeds.Add(seed);
                     lines.Add(new List<DelaunayVoronoiLine> { line });
                 }
             }
         }
 
         //make mesh for each voronoi region
-        Debug.Log(lines.Count);
         for(int i = 0; i < lines.Count; i++)
         {
             //collate list of points and reference triangles
             List<DelaunayPoint> points = new List<DelaunayPoint>(); //list of vertices
-            points.Add(seeds[i]);
+            points.Add(delSeeds[i]);
             int[] triangles = new int[(lines[i].Count * 3)];
             int arrayIndex = 0;
             foreach (DelaunayVoronoiLine line in lines[i])
@@ -483,12 +626,6 @@ public class VoronoiMaster : MonoBehaviour
                 triangles[arrayIndex + 2] = bIndex;
                 arrayIndex += 3;
             }
-            /*
-            foreach(int integer in triangles)
-            {
-                Debug.Log(integer);
-            }*/
-
 
             //convert point list into vectors
             Vector3[] vectors = new Vector3[points.Count];
@@ -499,29 +636,32 @@ public class VoronoiMaster : MonoBehaviour
                 arrayIndex++;
             }
 
-
-            //whack the coloUrs on there
-            Color[] colors = new Color[vectors.Length];
-            for (int a = 0; a < vectors.Length; a++)
-            {
-                colors[a] = new Color(255, 255, 255);
-            }
-
+            //assemble the mesh
             Mesh mesh = new Mesh();
             mesh.Clear();
             GameObject meshObject = Instantiate(voroRegion);
-            meshObject.active = true;
+            
+            //set the colour
             System.Random random = new System.Random();
-            meshObject.GetComponent<MeshRenderer>().material.color = new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255), 1);
-            Debug.Log(meshObject.GetComponent<MeshRenderer>().material.color.r);
-            //meshObject.GetComponent<MeshRenderer>().material.color = Color.red;
-            //GameObject meshObject = new GameObject("VoroRegion", typeof(MeshFilter), typeof(MeshRenderer));
+            foreach (Seed seed in seeds)
+            {
+                if(seed.x == vectors[0].x && seed.y == vectors[0].y)
+                {
+                    Color color = new Color((float)((1/255.0) * seed.r), (float)((1 / 255.0) * seed.g), (float)((1 / 255.0) * seed.b), 1.0f);
+                    meshObject.GetComponent<MeshRenderer>().material.color = color;
+                    break;
+                }
+            }
+
+            //set bounds
+            Bounds bounds = new(new Vector3((minX + maxX) / 2, (minY + maxY) / 2, 0), new Vector3((minX + maxX) / 2, (minY + maxY) / 2, 0));
+
             meshObject.GetComponent<MeshFilter>().mesh = mesh;
             mesh.vertices = vectors;
             mesh.triangles = triangles;
-            //mesh.colors = colors;
-        }
+            meshObject.GetComponent<MeshRenderer>().bounds = bounds;
 
-        
+            meshObject.SetActive(true);
+        }
     }
 }
