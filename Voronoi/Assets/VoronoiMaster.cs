@@ -272,7 +272,6 @@ public class VoronoiMaster : MonoBehaviour
 
         string newInput = hexInputBox.GetComponent<TMP_InputField>().text.ToUpper();
         newInput = newInput.Replace(" ", "");
-        Debug.Log(newInput);
 
         if(newInput.Length > 6)
         {
@@ -292,6 +291,7 @@ public class VoronoiMaster : MonoBehaviour
             {
                 renderDelaunay();
             }
+            //more to come
         }
     }
 
