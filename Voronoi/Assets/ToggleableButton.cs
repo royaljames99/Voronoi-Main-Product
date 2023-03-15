@@ -7,8 +7,6 @@ using UnityEngine.EventSystems;
 
 public class ToggleableButton : MonoBehaviour, IPointerClickHandler
 {
-    //https://stackoverflow.com/questions/56498130/how-can-i-make-a-button-to-act-like-a-toggle-or-maybe-using-a-toggle-and-make-th
-
     Image image;
     public Color originalColor;
     public Color checkedColor;
