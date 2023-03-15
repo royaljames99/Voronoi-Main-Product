@@ -657,6 +657,7 @@ public class VoronoiMaster : MonoBehaviour
         List<DelaunayPoint> delSeeds = new List<DelaunayPoint>();
 
         List<DelaunayVoronoiLine> subList;
+        bool alreadyAdded;
 
         foreach (DelaunayVoronoiLine line in delVLines)
         {
@@ -664,8 +665,16 @@ public class VoronoiMaster : MonoBehaviour
             {
                 if (delSeeds.Contains(seed))
                 {
+                    alreadyAdded = false;
                     subList = new List<DelaunayVoronoiLine>(lines[delSeeds.IndexOf(seed)]);
-                    if (!subList.Contains(line))
+                    foreach(DelaunayVoronoiLine checkLine in subList)
+                    {
+                        if (checkLine.seeds.Contains(line.seeds[0]) && checkLine.seeds.Contains(line.seeds[1]))
+                        {
+                            alreadyAdded = true;
+                        }
+                    }
+                    if (!alreadyAdded)
                     {
                         lines[delSeeds.IndexOf(seed)].Add(line);
                     }
@@ -750,7 +759,6 @@ public class VoronoiMaster : MonoBehaviour
                     break;
                 }
             }
-
 
             meshObject.GetComponent<MeshFilter>().mesh = mesh;
             mesh.vertices = vectors;
