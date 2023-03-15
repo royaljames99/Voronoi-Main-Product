@@ -17,6 +17,7 @@ public class Seed
     public int r;
     public int g;
     public int b;
+    public float transparency;
     public GameObject unityObject;
     public Seed(int x, int y, string hexCode, int r, int g, int b, GameObject seedObject)
     {
@@ -26,6 +27,7 @@ public class Seed
         this.r = r;
         this.g = g;
         this.b = b;
+        this.transparency = 1f;
         unityObject = UnityEngine.Object.Instantiate(seedObject);
         unityObject.transform.position = new Vector3(x, y, 0);
         unityObject.SetActive(true);
@@ -293,6 +295,11 @@ public class VoronoiMaster : MonoBehaviour
             }
             //more to come
         }
+    }
+    public void transparencyChanged()
+    {
+        Debug.Log(transparencySlider.GetComponent<Slider>().value);
+        selectedSeed.transparency = transparencySlider.GetComponent<Slider>().value;
     }
 
     private (int, int, int) hexValsFromCode(string hexCode)
@@ -587,7 +594,8 @@ public class VoronoiMaster : MonoBehaviour
         {
             delaunaySeeds.Add(new DelaunayPoint(seed.x, seed.y));
         }
-        DelaunayTriangle supertriangle = new DelaunayTriangle(new DelaunayPoint(-10000000, -10000000), new DelaunayPoint(0, 10000000), new DelaunayPoint(10000000, -10000000));
+        //DelaunayTriangle supertriangle = new DelaunayTriangle(new DelaunayPoint(-10000000, -10000000), new DelaunayPoint(0, 10000000), new DelaunayPoint(10000000, -10000000));
+        DelaunayTriangle supertriangle = new DelaunayTriangle(new DelaunayPoint(-10000, -10000), new DelaunayPoint(0, 10000), new DelaunayPoint(10000, -10000));
         triangulation = Delaunay.GetComponent<Delaunay>().getWholeTriangulation(delaunaySeeds, supertriangle);
         Delaunay.GetComponent<Delaunay>().convertWholeToVoronoi(triangulation);
         renderDelaunay();
@@ -648,14 +656,19 @@ public class VoronoiMaster : MonoBehaviour
         List<List<DelaunayVoronoiLine>> lines = new List<List<DelaunayVoronoiLine>>();
         List<DelaunayPoint> delSeeds = new List<DelaunayPoint>();
 
+        List<DelaunayVoronoiLine> subList;
 
-        foreach(DelaunayVoronoiLine line in delVLines)
+        foreach (DelaunayVoronoiLine line in delVLines)
         {
             foreach (DelaunayPoint seed in line.seeds)
             {
                 if (delSeeds.Contains(seed))
                 {
-                    lines[delSeeds.IndexOf(seed)].Add(line);
+                    subList = new List<DelaunayVoronoiLine>(lines[delSeeds.IndexOf(seed)]);
+                    if (!subList.Contains(line))
+                    {
+                        lines[delSeeds.IndexOf(seed)].Add(line);
+                    }
                 }
                 else
                 {
@@ -664,7 +677,6 @@ public class VoronoiMaster : MonoBehaviour
                 }
             }
         }
-
         //make mesh for each voronoi region
         for(int i = 0; i < lines.Count; i++)
         {
@@ -673,6 +685,7 @@ public class VoronoiMaster : MonoBehaviour
             points.Add(delSeeds[i]);
             int[] triangles = new int[(lines[i].Count * 3)];
             int arrayIndex = 0;
+            Debug.Log("WOOOOO");
             foreach (DelaunayVoronoiLine line in lines[i])
             {
                 //extract points
@@ -709,6 +722,7 @@ public class VoronoiMaster : MonoBehaviour
                 triangles[arrayIndex + 1] = aIndex;
                 triangles[arrayIndex + 2] = bIndex;
                 arrayIndex += 3;
+                Debug.Log(Convert.ToString(aIndex) + " " + Convert.ToString(bIndex));
             }
 
             //convert point list into vectors
@@ -731,19 +745,18 @@ public class VoronoiMaster : MonoBehaviour
             {
                 if(seed.x == vectors[0].x && seed.y == vectors[0].y)
                 {
-                    Color color = new Color((float)((1/255.0) * seed.r), (float)((1 / 255.0) * seed.g), (float)((1 / 255.0) * seed.b), 1.0f);
+                    Color color = new Color((float)((1/255.0) * seed.r), (float)((1 / 255.0) * seed.g), (float)((1 / 255.0) * seed.b), seed.transparency);
                     meshObject.GetComponent<MeshRenderer>().material.color = color;
                     break;
                 }
             }
 
-            //set bounds
-            Bounds bounds = new(new Vector3((minX + maxX) / 2, (minY + maxY) / 2, 0), new Vector3((minX + maxX) / 2, (minY + maxY) / 2, 0));
 
             meshObject.GetComponent<MeshFilter>().mesh = mesh;
             mesh.vertices = vectors;
             mesh.triangles = triangles;
-            meshObject.GetComponent<MeshRenderer>().bounds = bounds;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
 
             meshObject.SetActive(true);
         }
