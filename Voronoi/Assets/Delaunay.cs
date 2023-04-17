@@ -117,36 +117,7 @@ public class Delaunay : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        /*
-        Debug.Log("Adding Points");
-        List<DelaunayPoint> points = new List<DelaunayPoint>();
-        points.Add(new DelaunayPoint(0, 0));
-        points.Add(new DelaunayPoint(4, 2));
-        points.Add(new DelaunayPoint(4, -2));
-        points.Add(new DelaunayPoint(8, 0));
 
-        Debug.Log("Making triangulation");
-        List<DelaunayPoint> supertrianglePoints = new List<DelaunayPoint>();
-        supertrianglePoints.Add(new DelaunayPoint(-100, -100));
-        supertrianglePoints.Add(new DelaunayPoint(0, 100));
-        supertrianglePoints.Add(new DelaunayPoint(100, -100));
-        DelaunayTriangle supertriangle = new DelaunayTriangle(supertrianglePoints[0], supertrianglePoints[1], supertrianglePoints[2]);
-        List<DelaunayTriangle> triangulation = getWholeTriangulation(points, supertriangle);
-        Debug.Log("OUTPUTTING TRIANGULATION");
-        for (int i = 0; i < triangulation.Count; i++)
-        {
-            Debug.Log(Convert.ToString(triangulation[i].a.x) + "," + Convert.ToString(triangulation[i].a.y) + "    " + Convert.ToString(triangulation[i].b.x) + "," + Convert.ToString(triangulation[i].b.y) + "    " + Convert.ToString(triangulation[i].c.x) + "," + Convert.ToString(triangulation[i].c.y));
-        }
-        Debug.Log("Converting");
-        convertWholeToVoronoi(triangulation);
-        Debug.Log(delVLines.Count);
-
-        foreach (DelaunayVoronoiLine l in delVLines)
-        {
-            Debug.Log("Segment((" + Convert.ToString(l.a.x) + "," + Convert.ToString(l.a.y) + "),(" + Convert.ToString(l.b.x) + "," + Convert.ToString(l.b.y) + "))"); 
-        }
-        Debug.Log("Done");
-        */
     }
 
     // Update is called once per frame
@@ -316,22 +287,22 @@ public class Delaunay : MonoBehaviour
         {
             addToVoronoi(tri, triangulation);
         }
+        //remove duplicate lines
+        removeDuplicateLines();
         //remove the old stuff
-        foreach(DelaunayTriangle tri in deletedTriangles)
+        foreach (DelaunayTriangle tri in deletedTriangles)
         {
             if (delVLines.Contains(tri.edges[0].dualLine)){
                 delVLines.Remove(tri.edges[0].dualLine);
             }
-            else if (delVLines.Contains(tri.edges[1].dualLine))
+            if (delVLines.Contains(tri.edges[1].dualLine))
             {
                 delVLines.Remove(tri.edges[1].dualLine);
             }
-            else if (delVLines.Contains(tri.edges[2].dualLine))
+            if (delVLines.Contains(tri.edges[2].dualLine))
             {
                 delVLines.Remove(tri.edges[2].dualLine);
             }
         }
-        //remove duplicate lines
-        removeDuplicateLines();
     }
 }

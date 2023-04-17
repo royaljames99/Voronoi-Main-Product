@@ -429,6 +429,7 @@ public class Fortune : MonoBehaviour
     void Start()
     
     {   
+        /*
         PriorityQueue queue = new PriorityQueue();
         queue.enqueue(new FortunePoint(1, 2), 9);
         queue.enqueue(new FortunePoint(2, 2), 5);
@@ -445,6 +446,7 @@ public class Fortune : MonoBehaviour
         {
             Debug.Log(queue.dequeue().x);
         }
+        */
     }
 
     // Update is called once per frame

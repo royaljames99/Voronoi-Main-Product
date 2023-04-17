@@ -8,6 +8,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using UnityEngine.UI;
 using System.IO;
+using System.Diagnostics;
 
 public class Seed
 {
@@ -38,7 +39,7 @@ public class VoronoiMaster : MonoBehaviour
 {
     public int algorithm = 0; //0:delaunay, 1:GS, 2:fortune
     public int cursorType = 0; //0:pointer, 1:seed, 2:pan
-    public int genType = 0; //0:speedy, 1:animation, 2:live updates
+    public int genType = 0; //0:speedy, 1:live updates
 
     //boundary values
     public int minX = 0;
@@ -75,15 +76,15 @@ public class VoronoiMaster : MonoBehaviour
     public GameObject PanCursorButton;
     //generation type buttons
     public GameObject SpeedyButton;
-    public GameObject AnimationButton;
     public GameObject LiveUpdatesButton;
     //other buttons
     public GameObject LoadBackgroundButton;
     public GameObject SaveButton;
-    public GameObject TemplateButton;
     public GameObject LoadButton;
     public GameObject GenerateButton;
     public GameObject EdBallsButton;
+    //timer text
+    public GameObject GenTime;
 
     //seed object used as model
     public GameObject seedObject;
@@ -91,6 +92,13 @@ public class VoronoiMaster : MonoBehaviour
     public GameObject voroRegion;
     //background image object
     public GameObject backgroundImage;
+    //boundary rects
+    public GameObject topBoundary;
+    public GameObject leftBoundary;
+    public GameObject rightBoundary;
+    public GameObject bottomBoundary;
+
+    private GSDiagram diagram;
 
     //selectedSeed
     private Seed selectedSeed;
@@ -113,6 +121,7 @@ public class VoronoiMaster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        constructBoundaryBlockers();
         if (Input.GetMouseButtonDown(0))
         {
             if (!EventSystem.current.IsPointerOverGameObject())
@@ -155,7 +164,6 @@ public class VoronoiMaster : MonoBehaviour
                 //adding seeds
                 else if (cursorType == 1)
                 {
-                    Debug.Log("adding seed");
                     addSeed();
                     selectedSeed = seeds[seeds.Count - 1];
                     selectedSeedChanged();
@@ -184,7 +192,10 @@ public class VoronoiMaster : MonoBehaviour
         int y = Convert.ToInt32(mousePos.y);
         if(checkForDuplicateSeeds(x, y))
         {
-            Debug.Log("duplicate");
+            return;
+        }
+        if (x > maxX || y > maxY || x < minX || y < minY)
+        {
             return;
         }
         System.Random rand = new System.Random();
@@ -195,7 +206,7 @@ public class VoronoiMaster : MonoBehaviour
         Seed newSeed = new Seed(x, y, randHex, randRed, randBlue, randGreen, seedObject);
         seeds.Add(newSeed);
 
-        if(genType == 2)
+        if(genType == 1)
         {
             if(algorithm == 0)
             {
@@ -298,7 +309,6 @@ public class VoronoiMaster : MonoBehaviour
     }
     public void transparencyChanged()
     {
-        Debug.Log(transparencySlider.GetComponent<Slider>().value);
         selectedSeed.transparency = transparencySlider.GetComponent<Slider>().value;
     }
 
@@ -396,6 +406,45 @@ public class VoronoiMaster : MonoBehaviour
         }
     }
 
+    public void constructBoundaryBlockers()
+    {
+        float shift = 0;
+        //top boundary
+        if(Camera.main.transform.position.y + Camera.main.orthographicSize > maxY)
+        {
+            shift = Camera.main.transform.position.y + Camera.main.orthographicSize - maxY;
+        }
+        topBoundary.transform.localScale = new Vector3(Camera.main.orthographicSize * 2 * cam.aspect, 2*shift);
+        topBoundary.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.orthographicSize + Camera.main.transform.position.y);
+
+        //left boundary
+        shift = 0;
+        if (Camera.main.transform.position.x - (Camera.main.orthographicSize * cam.aspect) < minX)
+        {
+            shift = minX - (Camera.main.transform.position.x - (Camera.main.orthographicSize * cam.aspect));
+        }
+        leftBoundary.transform.localScale = new Vector3(2*shift, Camera.main.orthographicSize * 2);
+        leftBoundary.transform.position = new Vector3(Camera.main.transform.position.x - (Camera.main.orthographicSize * cam.aspect), Camera.main.transform.position.y);
+
+        //right boundary
+        shift = 0;
+        if (Camera.main.transform.position.x + (Camera.main.orthographicSize * cam.aspect) > maxX)
+        {
+            shift = Camera.main.transform.position.x + Camera.main.orthographicSize * cam.aspect - maxX;
+        }
+        rightBoundary.transform.localScale = new Vector3(2*shift, Camera.main.orthographicSize * 2);
+        rightBoundary.transform.position = new Vector3(Camera.main.transform.position.x + (Camera.main.orthographicSize * cam.aspect), Camera.main.transform.position.y);
+
+        //bottom boundary
+        shift = 0;
+        if (Camera.main.transform.position.y - Camera.main.orthographicSize < minY)
+        {
+            shift = minY - Camera.main.transform.position.y + Camera.main.orthographicSize;
+        }
+        bottomBoundary.transform.localScale = new Vector3(Camera.main.orthographicSize * 2 * cam.aspect, 2*shift);
+        bottomBoundary.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - Camera.main.orthographicSize);
+    }
+
     
     //group and handle button inputs
     public void ButtonInputs(int buttonID)
@@ -407,30 +456,24 @@ public class VoronoiMaster : MonoBehaviour
             {
                 DelaunayButton.GetComponent<ToggleableButton>().toggle();
             }
-            else
-            {
-                LiveUpdatesButton.GetComponent<ToggleableButton>().enableButton();
-            }
             if (buttonID != 1 && GSButton.GetComponent<ToggleableButton>().isPressed)
             {
                 GSButton.GetComponent<ToggleableButton>().toggle();
             }
-            else
-            {
-                LiveUpdatesButton.GetComponent<ToggleableButton>().enableButton();
-            }
             if (buttonID != 2 && FortuneButton.GetComponent<ToggleableButton>().isPressed)
             {
                 FortuneButton.GetComponent<ToggleableButton>().toggle();
+                LiveUpdatesButton.GetComponent<ToggleableButton>().enableButton();
             }
-            else
+            else if (buttonID == 2 && FortuneButton.GetComponent<ToggleableButton>().isPressed)
             {
                 LiveUpdatesButton.GetComponent<ToggleableButton>().disableButton();
-                if(genType == 2)
+                if(genType == 1)
                 {
                     genType = 0;
                     LiveUpdatesButton.GetComponent<ToggleableButton>().toggle();
                     SpeedyButton.GetComponent<ToggleableButton>().toggle();
+                    GenerateButton.GetComponent<NonToggleableButton>().enableButton();
                 }
             }
         }
@@ -454,48 +497,40 @@ public class VoronoiMaster : MonoBehaviour
                 PanCursorButton.GetComponent<ToggleableButton>().toggle();
             }
         }
-        else if (buttonID < 10) //Generation setting buttons
+        else if (buttonID < 9) //Generation setting buttons
         {
             genType = buttonID - 7;
             if (buttonID != 7 && SpeedyButton.GetComponent<ToggleableButton>().isPressed)
             {
                 SpeedyButton.GetComponent<ToggleableButton>().toggle();
             }
-            if (buttonID != 8 && AnimationButton.GetComponent<ToggleableButton>().isPressed)
-            {
-                AnimationButton.GetComponent<ToggleableButton>().toggle();
-            }
-            if (buttonID != 9 && LiveUpdatesButton.GetComponent<ToggleableButton>().isPressed)
+            if (buttonID != 8 && LiveUpdatesButton.GetComponent<ToggleableButton>().isPressed)
             {
                 LiveUpdatesButton.GetComponent<ToggleableButton>().toggle();
                 GenerateButton.GetComponent<NonToggleableButton>().enableButton();
             }
-            else if (buttonID == 9)
+            else if (buttonID == 8)
             {
                 GenerateButton.GetComponent<NonToggleableButton>().disableButton(); //can't hit generate when doing live updates
             }
         }
-        else if (buttonID == 10) //load background image button
+        else if (buttonID == 9) //load background image button
         {
             selectBackgroundImage();
         }
-        else if (buttonID == 11)
+        else if (buttonID == 10)
         {
             save();
         }
-        else if (buttonID == 12)
-        {
-            template();
-        }
-        else if (buttonID == 13)
+        else if (buttonID == 11)
         {
             load();
         }
-        else if (buttonID == 14)
+        else if (buttonID == 12)
         {
             generate();
         }
-        else if (buttonID == 15)
+        else if (buttonID == 13)
         {
             edBalls();
         }
@@ -504,12 +539,9 @@ public class VoronoiMaster : MonoBehaviour
     private void selectBackgroundImage()
     {
         string imagePath = EditorUtility.OpenFilePanel("Select background image", "", "png");
-        Debug.Log(imagePath);
         StreamReader reader = new StreamReader(imagePath);
         Texture2D tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(imagePath));
-        Debug.Log(tex.height);
-        Debug.Log(tex.width);
         backgroundImage.transform.localScale = new Vector3(tex.width, tex.height, 0);
         backgroundImage.GetComponent<RawImage>().texture = tex;
         backgroundImage.GetComponent<RawImage>().color = new Color(255, 255, 255, 1);
@@ -539,11 +571,6 @@ public class VoronoiMaster : MonoBehaviour
         }
     }
 
-    private void template()
-    {
-
-    }
-
     private void load()
     {
         string saveLocation = EditorUtility.OpenFilePanel("Select file with points data", "", "csv");
@@ -569,7 +596,7 @@ public class VoronoiMaster : MonoBehaviour
             }
             else if(algorithm == 1)
             {
-
+                genWholeGS();
             }
             else //fortune
             {
@@ -584,10 +611,24 @@ public class VoronoiMaster : MonoBehaviour
     }
 
 
+    //update the timer
+    private void genTime(TimeSpan ts)
+    {
+        UnityEngine.Debug.Log("asdf");
+        string s = "";
+        s += Convert.ToString(ts.Seconds);
+        s += ":";
+        s += Convert.ToString(ts.Milliseconds);
+        s += " sec:ms";
+        GenTime.GetComponent<TextMeshProUGUI>().text = s;
+    }
+
 
     //algorithm interfacing subroutines
     private void genWholeDelaunay()
     {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
         //convert seeds to Delaunay format
         List<DelaunayPoint> delaunaySeeds = new List<DelaunayPoint>();
         foreach(Seed seed in seeds)
@@ -599,6 +640,9 @@ public class VoronoiMaster : MonoBehaviour
         triangulation = Delaunay.GetComponent<Delaunay>().getWholeTriangulation(delaunaySeeds, supertriangle);
         Delaunay.GetComponent<Delaunay>().convertWholeToVoronoi(triangulation);
         renderDelaunay();
+        stopwatch.Stop();
+        TimeSpan ts = stopwatch.Elapsed;
+        genTime(ts);
     }
 
     private void liveUpdateDelaunay(Seed newSeed)
@@ -624,7 +668,23 @@ public class VoronoiMaster : MonoBehaviour
 
     private void genWholeGS()
     {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+        diagram = new GSDiagram(minX, minY, maxX, maxY);
+        foreach(Seed seed in seeds)
+        {
+            diagram.addSeed(new GSSeed(seed.x, seed.y));
+        }
+        renderGS();
+        stopwatch.Stop();
+        TimeSpan ts = stopwatch.Elapsed;
+        genTime(ts);
+    }
 
+    private void liveUpdateGS(Seed newSeed)
+    {
+        diagram.addSeed(new GSSeed(newSeed.x, newSeed.y));
+        renderGS();
     }
 
     private void genWholeFortune()
@@ -686,6 +746,7 @@ public class VoronoiMaster : MonoBehaviour
                 }
             }
         }
+
         //make mesh for each voronoi region
         for(int i = 0; i < lines.Count; i++)
         {
@@ -694,7 +755,7 @@ public class VoronoiMaster : MonoBehaviour
             points.Add(delSeeds[i]);
             int[] triangles = new int[(lines[i].Count * 3)];
             int arrayIndex = 0;
-            Debug.Log("WOOOOO");
+            //Debug.Log("WOOOOO");
             foreach (DelaunayVoronoiLine line in lines[i])
             {
                 //extract points
@@ -731,7 +792,7 @@ public class VoronoiMaster : MonoBehaviour
                 triangles[arrayIndex + 1] = aIndex;
                 triangles[arrayIndex + 2] = bIndex;
                 arrayIndex += 3;
-                Debug.Log(Convert.ToString(aIndex) + " " + Convert.ToString(bIndex));
+                //Debug.Log(Convert.ToString(aIndex) + " " + Convert.ToString(bIndex));
             }
 
             //convert point list into vectors
@@ -768,5 +829,160 @@ public class VoronoiMaster : MonoBehaviour
 
             meshObject.SetActive(true);
         }
+    }
+
+    private void renderGS()
+    {
+        clearScreen();
+
+        List<List<GSLine> >lines = new List<List<GSLine>>();
+        List<GSPoint> GSSeeds = new List<GSPoint>();
+
+        foreach (GSSeed seed in diagram.addedSeeds)
+        {
+            GSSeeds.Add(seed);
+            lines.Add(new List<GSLine>(seed.vLines.FindAll(item => item is not Boundary)));
+        }
+
+        for (int i = 0; i < lines.Count; i++)
+        {
+            List<GSPoint> points = new List<GSPoint>();
+            points.Add(GSSeeds[i]);
+            List<int> triangles = new();
+            int arrayIndex = 0;
+            List<GSPoint> unboundeds = new();
+            foreach (GSLine line in lines[i])
+            {
+                bool aFound = false;
+                int aIndex = -1;
+                bool bFound = false;
+                int bIndex = -1;
+                for (int j = 0; j < points.Count; j++)
+                {
+                    GSPoint point = points[j];
+                    if (point.x == line.points[0].x && point.y == line.points[0].x)
+                    {
+                        aFound = true;
+                        aIndex = j;
+                    }
+                    if (point.x == line.points[1].x && point.y == line.points[1].y)
+                    {
+                        bFound = true;
+                        bIndex = j;
+                    }
+                    if (point is Intersection)
+                        if (point.lines[0] is Boundary)
+                        {
+                            unboundeds.Add(point);
+                        }
+                }
+                if (!aFound)
+                {
+                    aIndex = points.Count;
+                    points.Add(line.points[0]);
+                }
+                if (!bFound)
+                {
+                    bIndex = points.Count;
+                    points.Add(line.points[1]);
+                }
+                //add triangle
+                triangles.Add(0);
+                triangles.Add(aIndex);
+                triangles.Add(bIndex);
+                arrayIndex += 3;
+            }
+            
+            if (unboundeds.Count > 1)
+            {
+                UnityEngine.Debug.Log("WOOP WOOP");
+                
+                List<List<GSPoint>> pairs = new List<List<GSPoint>>();
+                foreach (GSPoint unb in unboundeds)
+                {
+                    try
+                    {
+                        GSPoint onsamebound = unboundeds.Find(item => item.lines[0] == unb.lines[0] && item != unb);
+
+                        try
+                        {
+                            List<GSPoint> pair = pairs.Find(item => item[0] == onsamebound); //check for dupes
+                        }
+                        catch
+                        {
+                            triangles.Add(0);
+                            triangles.Add(points.IndexOf(unb));
+                            triangles.Add(points.IndexOf(onsamebound));
+                        }
+                    }
+                    catch
+                    {
+                        int x;
+                        if (points[0].x > unb.x)
+                        {
+                            x = minX;
+                        }
+                        else
+                        {
+                            x = maxX;
+                        }
+                        int y;
+                        if (points[0].y > unb.y)
+                        {
+                            y = maxY;
+                        }
+                        else
+                        {
+                            y = minY;
+                        }
+                        points.Add(new GSPoint(x, y));
+                        triangles.Add(0);
+                        triangles.Add(points.IndexOf(unb));
+                        triangles.Add(points.Count - 1);
+                    }
+                }
+            }
+            
+
+            int[] trianglesArray = triangles.ToArray();
+
+            Vector3[] vectors = new Vector3[points.Count];
+            arrayIndex = 0;
+            foreach(GSPoint point in points)
+            {
+                vectors[arrayIndex] = new Vector3(point.x, point.y, 0);
+                arrayIndex++;
+            }
+
+            //assemble the mesh
+            Mesh mesh = new Mesh();
+            mesh.Clear();
+            GameObject meshObject = Instantiate(voroRegion);
+
+            //set the colour
+            System.Random random = new System.Random();
+            foreach (Seed seed in seeds)
+            {
+                if (seed.x == vectors[0].x && seed.y == vectors[0].y)
+                {
+                    Color color = new Color((float)((1 / 255.0) * seed.r), (float)((1 / 255.0) * seed.g), (float)((1 / 255.0) * seed.b), seed.transparency);
+                    meshObject.GetComponent<MeshRenderer>().material.color = color;
+                    break;
+                }
+            }
+
+            meshObject.GetComponent<MeshFilter>().mesh = mesh;
+            mesh.vertices = vectors;
+            mesh.triangles = trianglesArray;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            meshObject.SetActive(true);
+        }
+    }
+
+    private void renderFortune()
+    {
+
     }
 }
