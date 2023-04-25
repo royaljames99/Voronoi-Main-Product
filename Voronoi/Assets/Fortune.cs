@@ -269,6 +269,7 @@ public class FortuneEdge
 {
     public FortunePoint start;
     public FortunePoint? end;
+    public FortunePoint[] seeds;
     public (float, float) directionVector;
     public string? propDirection;
     public float? m;
@@ -276,11 +277,12 @@ public class FortuneEdge
     public bool vertical;
     public float? xVal;
 
-    public FortuneEdge(FortunePoint start, (float, float) directionVector, string? propDirection = null, float? m = null, bool vertical = false)
+    public FortuneEdge(FortunePoint start, (float, float) directionVector, FortunePoint[] seeds, string? propDirection = null, float? m = null, bool vertical = false)
     {
         this.start = start;
         this.directionVector = directionVector;
         this.propDirection = propDirection;
+        this.seeds = seeds;
 
         if (m == null && !vertical)
         {
@@ -421,7 +423,7 @@ public class Fortune : MonoBehaviour
     PriorityQueue queue;
     Sweepline sweep;
     List<FortunePoint> vertices;
-    List<FortuneEdge> edges;
+    public List<FortuneEdge> edges;
     
 
 
@@ -429,24 +431,6 @@ public class Fortune : MonoBehaviour
     void Start()
     
     {   
-        /*
-        PriorityQueue queue = new PriorityQueue();
-        queue.enqueue(new FortunePoint(1, 2), 9);
-        queue.enqueue(new FortunePoint(2, 2), 5);
-        queue.enqueue(new FortunePoint(3, 2), 22);
-        queue.enqueue(new FortunePoint(4, 2), 164);
-        queue.enqueue(new FortunePoint(5, 2), 2);
-        queue.enqueue(new FortunePoint(6, 2), 3);
-        queue.enqueue(new FortunePoint(7, 2), 19);
-        queue.enqueue(new FortunePoint(8, 2), 1);
-
-        Debug.Log("queue emptying, expect order 8,5,6,2,1,7,3,4");
-        Debug.Log(queue.isEmpty());
-        while (!queue.isEmpty())
-        {
-            Debug.Log(queue.dequeue().x);
-        }
-        */
     }
 
     // Update is called once per frame
@@ -467,7 +451,6 @@ public class Fortune : MonoBehaviour
             return
         }
     }
-    */
 
     private float arcEdgeIntersection(FortuneArc arc, FortuneEdge edge)
     {
@@ -537,7 +520,8 @@ public class Fortune : MonoBehaviour
         FortunePoint point = new FortunePoint(x, y);
         return point;
     }
-
+    
+    */
     private void splitArc(Sweepline sweep, PriorityQueue queue, int origArcIdx, FortuneArc newArc)
     {
         FortuneArc origArc = sweep.arcs[origArcIdx];
@@ -585,7 +569,7 @@ public class Fortune : MonoBehaviour
         {
             isVertical = true;
         }
-        FortuneEdge edge1 = new FortuneEdge(start, direction, "left", null, isVertical);
+        FortuneEdge edge1 = new FortuneEdge(start, direction, new FortunePoint[2] { sweep.arcs[origArcIdx].point, sweep.arcs[origArcIdx + 1].point }, "left", null, isVertical);
         sweep.arcs[origArcIdx].rightEdge = edge1;
         sweep.arcs[origArcIdx + 1].leftEdge = edge1;
 
@@ -595,7 +579,7 @@ public class Fortune : MonoBehaviour
         {
             isVertical = true;
         }
-        FortuneEdge edge2 = new FortuneEdge(start, direction, "right", null, isVertical);
+        FortuneEdge edge2 = new FortuneEdge(start, direction, new FortunePoint[2] { sweep.arcs[origArcIdx + 1].point, sweep.arcs[origArcIdx + 2].point }, "right", null, isVertical);
         sweep.arcs[origArcIdx + 1].rightEdge = edge2;
         sweep.arcs[origArcIdx + 2].leftEdge = edge2;
     }
@@ -643,11 +627,11 @@ public class Fortune : MonoBehaviour
 
     private void firstPoint(int minX, int minY, int maxX)
     {
-        FortuneEdge leftMostEdge = new FortuneEdge(new FortunePoint(minX, minY), (0, 1), null, null, true);
-        FortuneEdge rightMostEdge = new FortuneEdge(new FortunePoint(maxX, minY), (0, 1), null, null, true);
         FortunePoint firstPoint = queue.dequeue();
         sweep = new Sweepline(firstPoint.y);
         FortuneArc firstArc = new FortuneArc(firstPoint);
+        FortuneEdge leftMostEdge = new FortuneEdge(new FortunePoint(minX, minY), (0, 1), new FortunePoint[2] { null, firstArc.point }, null, null, true);
+        FortuneEdge rightMostEdge = new FortuneEdge(new FortunePoint(maxX, minY), (0, 1), new FortunePoint[2] { null, firstArc.point }, null, null, true);
         firstArc.leftEdge = leftMostEdge;
         firstArc.rightEdge = rightMostEdge;
         sweep.arcs.Add(firstArc);
@@ -710,7 +694,7 @@ public class Fortune : MonoBehaviour
             }
             //assign new edge to left and right arc
             (float, float) direction = (-1 * (e.arcs[0].point.y - e.arcs[2].point.y), e.arcs[0].point.x - e.arcs[2].point.x);
-            FortuneEdge newEdge = new FortuneEdge(e.circumcentre, direction, e.side);
+            FortuneEdge newEdge = new FortuneEdge(e.circumcentre, direction, new FortunePoint[2]{ sweep.arcs[idx - 1].point, sweep.arcs[idx].point },e.side);
             sweep.arcs[idx - 1].rightEdge = newEdge;
             sweep.arcs[idx].leftEdge = newEdge;
 
@@ -740,7 +724,7 @@ public class Fortune : MonoBehaviour
     }
 
     //generating the whole thing at once
-    public void generateWholeFortune(List<FortunePoint> points, int minX, int minY, int maxX)
+    public List<FortuneEdge> generateWholeFortune(List<FortunePoint> points, int minX, int minY, int maxX, int maxY)
     {
         queue = new PriorityQueue();
         foreach(FortunePoint point in points)
@@ -753,10 +737,6 @@ public class Fortune : MonoBehaviour
             nextEvent();
         }
 
-        foreach(FortuneEdge edge in edges)
-        {
-            Debug.Log("Segment((" + Convert.ToString(edge.start.x) + "," + Convert.ToString(edge.start.y) + "),(" + Convert.ToString(edge.end.x) + "," + Convert.ToString(edge.end.y) + "))");
-        }
         foreach (FortuneArc arc in sweep.arcs)
         {
             if (!edges.Contains(arc.leftEdge))
@@ -765,16 +745,37 @@ public class Fortune : MonoBehaviour
                 {
                     if(arc.leftEdge.propDirection == "left")
                     {
-                        Debug.Log($"If(x<{arc.leftEdge.start.x},{arc.leftEdge.m}x + {arc.leftEdge.c})");
+                        float leftMostY = (float)arc.leftEdge.calcY(minX);
+                        float leftMostX = (float)arc.leftEdge.calcX(maxY);
+                        if (leftMostY > maxY)
+                        {
+                            arc.leftEdge.end = new FortunePoint(leftMostX, maxY);
+                        }
+                        else
+                        {
+                            arc.leftEdge.end = new FortunePoint(minX, leftMostY);
+                        }
+                        edges.Add(arc.leftEdge);
                     }
                     else
                     {
-                        Debug.Log($"If(x>{arc.leftEdge.start.x},{arc.leftEdge.m}x + {arc.leftEdge.c})");
+                        float rightMostY = (float)arc.leftEdge.calcY(maxX);
+                        float rightMostX = (float)arc.leftEdge.calcX(maxY);
+                        if (rightMostY > maxY)
+                        {
+                            arc.leftEdge.end = new FortunePoint(rightMostX, maxY);
+                        }
+                        else
+                        {
+                            arc.leftEdge.end = new FortunePoint(maxX, rightMostY);
+                        }
+                        edges.Add(arc.leftEdge);
                     }
                 }
                 else
                 {
-                    Debug.Log($"x = {arc.leftEdge.xVal}");
+                    arc.leftEdge.end = new FortunePoint((float)arc.leftEdge.xVal, maxY);
+                    edges.Add(arc.leftEdge);
                 }
             }
             if (!edges.Contains(arc.rightEdge))
@@ -783,20 +784,40 @@ public class Fortune : MonoBehaviour
                 {
                     if (arc.rightEdge.propDirection == "left")
                     {
-                        Debug.Log($"If(x<{arc.rightEdge.start.x},{arc.rightEdge.m}x + {arc.rightEdge.c})");
+                        float leftMostY = (float)arc.rightEdge.calcY(minX);
+                        float leftMostX = (float)arc.rightEdge.calcX(maxY);
+                        if (leftMostY > maxY)
+                        {
+                            arc.rightEdge.end = new FortunePoint(leftMostX, maxY);
+                        }
+                        else
+                        {
+                            arc.rightEdge.end = new FortunePoint(minX, leftMostY);
+                        }
+                        edges.Add(arc.leftEdge);
                     }
                     else
                     {
-                        Debug.Log($"If(x>{arc.rightEdge.start.x},{arc.rightEdge.m}x + {arc.rightEdge.c})");
+                        float rightMostY = (float)arc.rightEdge.calcY(maxX);
+                        float rightMostX = (float)arc.rightEdge.calcX(maxY);
+                        if (rightMostY > maxY)
+                        {
+                            arc.rightEdge.end = new FortunePoint(rightMostX, maxY);
+                        }
+                        else
+                        {
+                            arc.rightEdge.end = new FortunePoint(maxX, rightMostY);
+                        }
+                        edges.Add(arc.rightEdge);
                     }
                 }
                 else
                 {
-                    Debug.Log($"x = {arc.rightEdge.xVal}");
+                    arc.rightEdge.end = new FortunePoint((float)arc.rightEdge.xVal, maxY);
+                    edges.Add(arc.rightEdge);
                 }
             }
         }
+        return edges;
     }
-
-    //animation generation
 }

@@ -212,6 +212,10 @@ public class VoronoiMaster : MonoBehaviour
             {
                 liveUpdateDelaunay(newSeed);
             }
+            else if (algorithm == 1)
+            {
+                liveUpdateGS(newSeed);
+            }
         }
     }
 
@@ -614,12 +618,11 @@ public class VoronoiMaster : MonoBehaviour
     //update the timer
     private void genTime(TimeSpan ts)
     {
-        UnityEngine.Debug.Log("asdf");
         string s = "";
         s += Convert.ToString(ts.Seconds);
-        s += ":";
+        s += " sec ";
         s += Convert.ToString(ts.Milliseconds);
-        s += " sec:ms";
+        s += " ms";
         GenTime.GetComponent<TextMeshProUGUI>().text = s;
     }
 
@@ -689,12 +692,22 @@ public class VoronoiMaster : MonoBehaviour
 
     private void genWholeFortune()
     {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
         List<FortunePoint> fortuneSeeds = new List<FortunePoint>();
         foreach(Seed seed in seeds)
         {
             fortuneSeeds.Add(new FortunePoint(seed.x, seed.y));
         }
-        Fortune.GetComponent<Fortune>().generateWholeFortune(fortuneSeeds, -50, -50, 2000);
+        List<FortuneEdge> edges = Fortune.GetComponent<Fortune>().generateWholeFortune(fortuneSeeds, minX, -minY, maxX, maxY);
+        foreach(FortuneEdge edge in edges)
+        {
+            UnityEngine.Debug.Log("Segment((" + Convert.ToString(edge.start.x) + "," + Convert.ToString(edge.start.y) + "),(" + Convert.ToString(edge.end.x) + "," + Convert.ToString(edge.end.y) + "))");
+        }
+        stopwatch.Stop();
+        TimeSpan ts = stopwatch.Elapsed;
+        genTime(ts);
+        renderFortune(edges);
     }
 
     //renderers
@@ -841,9 +854,8 @@ public class VoronoiMaster : MonoBehaviour
         foreach (GSSeed seed in diagram.addedSeeds)
         {
             GSSeeds.Add(seed);
-            lines.Add(new List<GSLine>(seed.vLines.FindAll(item => item is not Boundary)));
+            lines.Add(new List<GSLine>(seed.vLines.FindAll(item => item is not Boundary && item.alive)));
         }
-
         for (int i = 0; i < lines.Count; i++)
         {
             List<GSPoint> points = new List<GSPoint>();
@@ -870,21 +882,37 @@ public class VoronoiMaster : MonoBehaviour
                         bFound = true;
                         bIndex = j;
                     }
-                    if (point is Intersection)
-                        if (point.lines[0] is Boundary)
-                        {
-                            unboundeds.Add(point);
-                        }
+                    else
+                    {
+                        UnityEngine.Debug.Log(point.GetType());
+                    }
+                    
                 }
                 if (!aFound)
                 {
                     aIndex = points.Count;
                     points.Add(line.points[0]);
+
+                    if (line.points[0] is Intersection)
+                    {
+                        if (line.points[0].lines[0] is Boundary)
+                        {
+                            unboundeds.Add(line.points[0]);
+                        }
+                    }
                 }
                 if (!bFound)
                 {
                     bIndex = points.Count;
                     points.Add(line.points[1]);
+
+                    if (line.points[1] is Intersection)
+                    {
+                        if (line.points[1].lines[0] is Boundary)
+                        {
+                            unboundeds.Add(line.points[1]);
+                        }
+                    }
                 }
                 //add triangle
                 triangles.Add(0);
@@ -892,30 +920,25 @@ public class VoronoiMaster : MonoBehaviour
                 triangles.Add(bIndex);
                 arrayIndex += 3;
             }
-            
+
             if (unboundeds.Count > 1)
             {
-                UnityEngine.Debug.Log("WOOP WOOP");
-                
                 List<List<GSPoint>> pairs = new List<List<GSPoint>>();
                 foreach (GSPoint unb in unboundeds)
                 {
-                    try
+                    GSPoint onsamebound = unboundeds.Find(item => (item.x == unb.x || item.y == unb.y) && item != unb);
+                    if (onsamebound != null)
                     {
-                        GSPoint onsamebound = unboundeds.Find(item => item.lines[0] == unb.lines[0] && item != unb);
+                        List<GSPoint> pair = pairs.Find(item => item[0] == onsamebound);//check for dupes
 
-                        try
-                        {
-                            List<GSPoint> pair = pairs.Find(item => item[0] == onsamebound); //check for dupes
-                        }
-                        catch
+                        if (pair == null)
                         {
                             triangles.Add(0);
                             triangles.Add(points.IndexOf(unb));
                             triangles.Add(points.IndexOf(onsamebound));
                         }
                     }
-                    catch
+                    else
                     {
                         int x;
                         if (points[0].x > unb.x)
@@ -939,7 +962,16 @@ public class VoronoiMaster : MonoBehaviour
                         triangles.Add(0);
                         triangles.Add(points.IndexOf(unb));
                         triangles.Add(points.Count - 1);
+
+                        int otherVert = points.FindIndex(item => ((item.x == x && item.y != y) || (item.x != x && item.y == y)) && !unboundeds.Contains(item));
+                        if (otherVert != -1)
+                        {
+                            triangles.Add(0);
+                            triangles.Add(points.Count - 1);
+                            triangles.Add(otherVert);
+                        }
                     }
+                    pairs.Add(new List<GSPoint>(){unb, onsamebound});
                 }
             }
             
@@ -981,8 +1013,188 @@ public class VoronoiMaster : MonoBehaviour
         }
     }
 
-    private void renderFortune()
+    private void renderFortune(List<FortuneEdge> edges)
     {
+        clearScreen();
 
+        List<List<FortuneEdge>> lines = new List<List<FortuneEdge>>();
+        List<FortunePoint> FortuneSeeds = new List<FortunePoint>();
+
+        List<FortuneEdge> subList;
+        bool alreadyAdded;
+
+        foreach (FortuneEdge line in edges)
+        {
+            foreach (FortunePoint seed in line.seeds)
+            {
+                if (FortuneSeeds.Contains(seed))
+                {
+                    alreadyAdded = false;
+                    subList = new List<FortuneEdge>(lines[FortuneSeeds.IndexOf(seed)]);
+                    foreach (FortuneEdge checkLine in subList)
+                    {
+                        if (checkLine.seeds.Contains(line.seeds[0]) && checkLine.seeds.Contains(line.seeds[1]))
+                        {
+                            alreadyAdded = true;
+                        }
+                    }
+                    if (!alreadyAdded)
+                    {
+                        lines[FortuneSeeds.IndexOf(seed)].Add(line);
+                    }
+                }
+                else
+                {
+                    FortuneSeeds.Add(seed);
+                    lines.Add(new List<FortuneEdge> { line });
+                }
+            }
+        }
+
+        for (int i = 0; i < lines.Count; i++)
+        {
+            List<FortunePoint> points = new List<FortunePoint>();
+            points.Add(FortuneSeeds[i]);
+            List<int> triangles = new();
+            int arrayIndex = 0;
+            List<FortunePoint> unboundeds = new();
+            foreach (FortuneEdge line in lines[i])
+            {
+                bool aFound = false;
+                int aIndex = -1;
+                bool bFound = false;
+                int bIndex = -1;
+                for (int j = 0; j < points.Count; j++)
+                {
+                    FortunePoint point = points[j];
+                    if (point.x == line.start.x && point.y == line.start.x)
+                    {
+                        aFound = true;
+                        aIndex = j;
+                    }
+                    if (point.x == line.end.x && point.y == line.end.y)
+                    {
+                        bFound = true;
+                        bIndex = j;
+                    }
+
+                }
+                if (!aFound)
+                {
+                    aIndex = points.Count;
+                    points.Add(line.start);
+
+                    if (line.start.x == maxX || line.start.x == minX || line.start.y == minY || line.start.y == maxY)
+                    {
+                        unboundeds.Add(line.start);
+                    }
+                }
+                if (!bFound)
+                {
+                    bIndex = points.Count;
+                    points.Add(line.end);
+
+                    if (line.end.x == maxX || line.end.x == minX || line.end.y == minY || line.end.y == maxY)
+                    {
+                        unboundeds.Add(line.end);
+                    }
+                }
+                //add triangle
+                triangles.Add(0);
+                triangles.Add(aIndex);
+                triangles.Add(bIndex);
+                arrayIndex += 3;
+            }
+
+            if (unboundeds.Count > 1)
+            {
+                List<List<FortunePoint>> pairs = new List<List<FortunePoint>>();
+                foreach (FortunePoint unb in unboundeds)
+                {
+                    FortunePoint onsamebound = unboundeds.Find(item => (item.x == unb.x || item.y == unb.y) && item != unb);
+                    if (onsamebound != null)
+                    {
+                        List<FortunePoint> pair = pairs.Find(item => item[0] == onsamebound);//check for dupes
+
+                        if (pair == null)
+                        {
+                            triangles.Add(0);
+                            triangles.Add(points.IndexOf(unb));
+                            triangles.Add(points.IndexOf(onsamebound));
+                        }
+                    }
+                    else
+                    {
+                        int x;
+                        if (points[0].x > unb.x)
+                        {
+                            x = minX;
+                        }
+                        else
+                        {
+                            x = maxX;
+                        }
+                        int y;
+                        if (points[0].y > unb.y)
+                        {
+                            y = maxY;
+                        }
+                        else
+                        {
+                            y = minY;
+                        }
+                        points.Add(new FortunePoint(x, y));
+                        triangles.Add(0);
+                        triangles.Add(points.IndexOf(unb));
+                        triangles.Add(points.Count - 1);
+
+                        int otherVert = points.FindIndex(item => ((item.x == x && item.y != y) || (item.x != x && item.y == y)) && !unboundeds.Contains(item));
+                        if (otherVert != -1)
+                        {
+                            triangles.Add(0);
+                            triangles.Add(points.Count - 1);
+                            triangles.Add(otherVert);
+                        }
+                    }
+                    pairs.Add(new List<FortunePoint>() { unb, onsamebound });
+                }
+            }
+
+
+            int[] trianglesArray = triangles.ToArray();
+
+            Vector3[] vectors = new Vector3[points.Count];
+            arrayIndex = 0;
+            foreach (FortunePoint point in points)
+            {
+                vectors[arrayIndex] = new Vector3(point.x, point.y, 0);
+                arrayIndex++;
+            }
+
+            //assemble the mesh
+            Mesh mesh = new Mesh();
+            mesh.Clear();
+            GameObject meshObject = Instantiate(voroRegion);
+
+            //set the colour
+            System.Random random = new System.Random();
+            foreach (Seed seed in seeds)
+            {
+                if (seed.x == vectors[0].x && seed.y == vectors[0].y)
+                {
+                    Color color = new Color((float)((1 / 255.0) * seed.r), (float)((1 / 255.0) * seed.g), (float)((1 / 255.0) * seed.b), seed.transparency);
+                    meshObject.GetComponent<MeshRenderer>().material.color = color;
+                    break;
+                }
+            }
+
+            meshObject.GetComponent<MeshFilter>().mesh = mesh;
+            mesh.vertices = vectors;
+            mesh.triangles = trianglesArray;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            meshObject.SetActive(true);
+        }
     }
 }
